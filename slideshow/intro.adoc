@@ -141,7 +141,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 == So what's so special?
 
 [#block,width="800px",top="50px"]
-image:docker-animated-1.gif[]
+image:day1/docker-animated-1.gif[]
 
 // ************** transition page ************
 [#transition2, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
