@@ -1,0 +1,495 @@
+:footer_copyright: Copyright ©2015 Red Hat, Inc.
+:imagesdir: images/
+:speaker: Christian Posta
+:speaker-title: Principal Middleware Architect
+:speaker-email: christian@redhat.com
+:speaker-blog: http://blog.christianposta.com
+:speaker-twitter: http://twitter.com/christianposta[@christianposta]
+:talk-speaker: {speaker}
+:talk-name: Intro: Docker and Kubernetes training - Day 1
+:talk-date: 10/19/2015
+
+[#cover,data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,width="600px",left="0px",top="200px"]
+{talk-name}
+
+[#cover-h2,width="800px",left="0px",top="450px"]
+{speaker} +
+{talk-date}
+
+// ************** who - christian ********
+[#who]
+== Who
+
+[.noredheader,cols="30,70"]
+|===
+| image:ceposta.png[width="90%",height="100%"]
+| {speaker-title}
+
+Blog: {speaker-blog}
+
+Twitter: {speaker-twitter}
+
+Email: {speaker-email} |
+|===
+
+* Committer on Apache ActiveMQ, Apache Camel, Fabric8
+* Technology evangelist, recovering consultant
+* Spent a lot of time working with one of the largest Microservices, web-scale, unicorn companies
+* Frequent blogger and speaker about open-source, cloud, microservices
+
+// ************** Agenda  ********
+[#agenda]
+== Agenda
+
+* Intro / Prep Environments
+* *Day 1: Docker Deep Dive*
+* Day 2: Kubernetes Deep Dive
+* Day 3: Advanced Kubernetes: Concepts, Management, Middleware
+* Day 4: Advanced Kubernetes: CI/CD, open discussions
+
+
+// ************** transition page  - docker deep dive************************************************
+[#transition1-deep-dive, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,width="600px",left="0px",top="400px"]
+*Docker Deep Dive*
+
+// ************** what is it********
+[#whatisit1]
+== What is this Docker thing?
+
+* A company?
+* A format?
+* An API?
+
+[#block,width="100px",top="120px",left="300px"]
+image:docker-logo.png[role="right"]
+
+// ************** what is it********
+[#linuxcontainers]
+== Linux containers? That's not new...
+
+* Linux-native functionality
+* Has been around ~ 10 years?
+* cgroups
+* kernel namespaces
+* chroot
+* Linux capabilities
+* Security (SELinux)
+
+[#block,width="100px",top="220px",left="400px"]
+image:linux.png[role="right"]
+
+// ************** what is it********
+[#cgroups]
+== cgroups
+
+* Built into Kernel (RHEL7/Debian/etc)
+* Generically isolates resource usage (CPU, memory, disk, network)
+* Guarantee resources to app/set of apps
+* Can be adjusted on the fly
+* Can monitor the cgroup itself to see utilization
+
+
+[#block,width="100px",top="220px",left="470px"]
+image:day1/intro-cgroups.png[width="85%",height="85%"]
+
+// ************** what is it********
+[#namespaces]
+== Kernel namespaces
+
+* Isolating views of the system
+* Can make a process think it's the only process
+* Built-in way to "virtualize" a process
+
+[#block,width="100px",top="220px",left="470px"]
+image:day1/scope.png[width="85%",height="85%"]
+
+// ************** what is it********
+[#namespaceslist]
+== Kernel namespaces
+
+* *mnt* (mount points, filesystem)
+* *pid* (processes)
+* *net* (network stack)
+* *ipc* (inter-process comms)
+* *uts* (hostname)
+* *user* (UIDs)
+
+// ************** what is it********
+[#linuxcaps]
+== Linux capabilities
+
+* *"root"* has *all* capabilities
+* a fine-grained division of "root"'s permissions for a process
+* *CAP_NET_ADMIN* - modify routing tables, firewalling, NAT, etc
+* *CAP_KILL* -  bypass any checks for sending the kill signals
+* *CAP_SYS_ADMIN* - mount, set hostname, etc
+
+// ************** what is it********
+[#docker-bring-together]
+== Docker brings together
+
+[#block,width="100px",top="100px",left="50px"]
+image:day1/docker.png[width="90%",height="90%"]
+
+// ************** what is it********
+[#whyimportant1]
+== Why is this important?
+
+* Image format vs golden image
+* API
+* Packaging
+* Separation of concerns (Devs/Ops)
+* Density, infrastructure utilization
+
+// ************** what is it********
+[#dockerformat]
+== Docker format
+
+[#block,width="100px",top="100px",left="50px"]
+image:day1/docker-layers.png[width="90%",height="90%"]
+
+// ************** what is it********
+[#processvirtualization]
+== Process virtualization
+
+[#block,width="100px",top="100px",left="50px"]
+image:day1/docker-animated-1.gif[width="90%",height="90%"]
+
+// ************** immutable infra********
+[#immutableinfra]
+== Immutable infrastructure
+
+* "We'll put it back in Ansible"
+* Cattle vs Pets
+* Don't change it; *replace it*
+* System created fully from automation; *avoid drift*
+* Manual intervention is error prone
+* How does Docker help?
+
+[#block,width="100px",top="300px",left="450px"]
+image:day1/cattle.jpg[width="90%",height="90%"]
+
+// ************** Docker components********
+[#docker-components]
+== Basic Docker components
+
+* Docker client
+* Docker daemon
+* Images
+* Registry
+* Containers
+
+
+// ************** Docker components 2********
+[#docker-components2]
+== Basic Docker components
+
+[#block,width="100px",top="100px",left="50px"]
+image:day1/docker-components.png[width="90%",height="90%"]
+
+
+// ************** Docker images********
+[#docker-images]
+== Docker images
+
+* *Templates* from which containers are created
+* *Layered* using union filesystems
+* Each change to the system is a layer
+* Typically created with Dockerfiles/instructions
+* Stored in a docker registry (public/private)
+
+// ************** Docker containers********
+[#docker-containers]
+== Docker containers
+
+* *Runtime* instances of a Docker Image
+* Copy on write file system; changes localized
+* *"virtualized"* with namespaces, cgroups, selinux, etc
+* Has own IP address/networking/volumes
+* Intended to *run single process* (process virtualization)
+
+
+// ************** Developer workflow ********
+[#dev-workflow]
+== Developer workflow
+
+* work from vagrant image
+* can trash and reboot it any time
+* locally running docker client
+* Source code in developer IDE
+* When ready, use tooling to generate docker image (or hand craft)
+* Run image locally (possibly with others)
+* Push code (or image?)
+* CI process kicks in
+
+// ************** Developer workflow ********
+[#dev-workflow-2]
+== Developer works locally
+
+[#block,width="100px",top="100px",left="50px"]
+image:day1/workflow1.png[width="100%",height="100%"]
+
+// ************** Developer workflow ********
+[#dev-workflow-3]
+== Developer pushes code
+
+[#block,width="100px",top="100px",left="50px"]
+image:day1/workflow2.png[width="100%",height="100%"]
+
+// ************** transition page ************************************************************************
+[#your-first-docker, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Your First Docker!*
+
+// ************** pull docker images ********
+[#pull-docker-image]
+== Pull a docker image
+
+Pull Centos7 from DockerHub (http://docker.io)
+
+
+  docker pull centos:7
+
+output:
+
+  ceposta@postamac(~) $ docker pull centos:7
+  7: Pulling from library/centos
+
+  fa5be2806d4c: Pull complete
+  0cd86ce0a197: Pull complete
+  e9407f1d4b65: Pull complete
+  c9853740aa05: Pull complete
+  e9fa5d3a0d0e: Pull complete
+  Digest: sha256:def5c79bc29849815dec7dddc8f75530a9115c94d5b17e0e6807f929902fab62
+  Status: Downloaded newer image for centos:7
+
+
+// ************** show images ********
+[#list-docker-images]
+== List docker images
+
+List locally, installed images
+
+
+  docker images
+
+output:
+
+  ceposta@postamac(~) $ docker images
+  REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+  centos              7                   e9fa5d3a0d0e        2 days ago          172.3 MB
+
+Show all images, including itermmediate
+
+  docker images -a
+
+output:
+
+  ceposta@postamac(~) $ docker images -a
+  REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+  centos              7                   e9fa5d3a0d0e        2 days ago          172.3 MB
+  <none>              <none>              c9853740aa05        2 days ago          172.3 MB
+  <none>              <none>              e9407f1d4b65        2 days ago          172.3 MB
+  <none>              <none>              0cd86ce0a197        2 days ago          172.3 MB
+  <none>              <none>              fa5be2806d4c        5 weeks ago         0 B
+
+
+// ************** run images ********
+[#run-docker-image]
+== Let's run a Docker container!
+
+Let's run a linux command inside a docker container:
+
+  docker run --rm centos:7 echo "hello world"
+
+output:
+
+  ceposta@postamac(~) $ docker run --rm centos:7 echo "hello world"
+  hello world
+
+Woah, what happened? It just printed out "hello, world"? So what?
+
+
+// ************** run images ********
+[#run-docker-image2]
+== Let's run a Docker container!
+
+Let's run a shell inside a docker container:
+
+  docker run -it --rm centos:7 bash
+
+output:
+
+  [root@d7dfcc490cbe /]# _
+
+Cool! We have a bash shell, and a minimal distro of Centos 7!
+Did you see how fast that booted up?
+Typing `ls -l /etc/*-release` from the new bash prompt shows us we indeed have a Centos 7 distro:
+
+  [root@c2c2b8a65afe /]# ll /etc/*-release
+  -rw-r--r-- 1 root root  38 Mar 31  2015 /etc/centos-release
+  -rw-r--r-- 1 root root 393 Mar 31  2015 /etc/os-release
+  lrwxrwxrwx 1 root root  14 Aug 14 21:00 /etc/redhat-release -> centos-release
+  lrwxrwxrwx 1 root root  14 Aug 14 21:00 /etc/system-release -> centos-release
+
+
+// ************** run images ********
+[#run-docker-image3]
+== Let's run a Docker container!
+
+Run some other commands from within the container:
+
+  hostname -f
+  cat /etc/hosts
+  ps aux
+  yum -y install vim
+  ip a
+
+A real linux distro right? Did you notice that `ps aux` didn't show too many processes?
+
+
+// ************** run images ********
+[#run-docker-image4]
+== Let's run a Docker container!
+
+Let's do some destructive stuff:
+
+  rm -fr /usr/sbin
+
+Wuh? you deleted all of the sacred system tools!?
+
+Let's delete some user tools too
+
+  rm -fr /usr/bin
+
+output:
+
+  [root@c2c2b8a65afe /]# ls
+  bash: /usr/bin/ls: No such file or directory
+
+Whoops... cannot `ls` or do anything useful anymore. What have we done!?
+
+// ************** run images ********
+[#run-docker-image5]
+== Let's run a Docker container!
+
+No worries! Just `exit` the container and fire up a new one:
+
+  docker run -it --rm centos:7 bash
+
+Everything is back! Phew....
+
+// ************** Explore a little deeper... ********
+[#run-docker-explore-tomcat]
+== Deploy Apache Tomcat
+
+Now let's run a JVM based application like Apache Tomcat:
+
+  docker run --rm -p 8888:8080 tomcat:8.0
+
+Since the Tomcat 8.0 docker image doesn't exist, Docker will try to automatically pull it from the registry. Give it
+a moment, and you should see tomcat start successfully:
+
+  16-Oct-2015 18:30:51.541 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /usr/local/tomcat/webapps/manager has finished in 28 ms
+  16-Oct-2015 18:30:51.542 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory /usr/local/tomcat/webapps/examples
+  16-Oct-2015 18:30:52.108 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /usr/local/tomcat/webapps/examples has finished in 566 ms
+  16-Oct-2015 18:30:52.117 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory /usr/local/tomcat/webapps/ROOT
+  16-Oct-2015 18:30:52.161 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /usr/local/tomcat/webapps/ROOT has finished in 45 ms
+  16-Oct-2015 18:30:52.176 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+  16-Oct-2015 18:30:52.206 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["ajp-nio-8009"]
+  16-Oct-2015 18:30:52.208 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in 1589 ms
+
+
+// ************** Explore a little deeper... ********
+[#run-docker-explore-tomcat2]
+== Deploy Apache Tomcat
+
+Let's explore that command for a quick sec:
+
+  docker run --rm -p 8888:8080 tomcat:8.0
+
+* `--rm` tells us that we want to remove the container (delete) when it's done running
+* `-p 8888:8080` tells us we want to map the cotainer's port `8080` to the host port of `8888`
+
+So if we try to connect to `http://localhost:8888` we should be able to reach our tomcat server!
+
+
+// ************** Explore a little deeper... ********
+[#run-docker-explore-tomcat3]
+== Deploy Apache Tomcat
+
+Well, not quite. Why not?
+
+[#block,width="200px",top="250px",left="150px"]
+image:day1/docker-ports.png[width="120%",height="120%"]
+
+Our Docker Host has been mapped properly, but we cannot reach it from our host (Windows/MacOSX) because the VM does
+not expose those ports.
+
+// ************** Explore a little deeper... ********
+[#run-docker-explore-tomcat4]
+== Deploy Apache Tomcat
+
+Enable port forwarding between the VM Host (windows/Mac) and the VM Guest (Docker host):
+
+
+
+[#block,width="200px",top="175px",left="150px"]
+image:day1/port-forward.png[width="100%",height="100%"]
+
+
+// ************** transition page ************************************************************************
+[#docker-registry, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Docker registry*
+
+// ************** transition page ************************************************************************
+[#deploy-apps, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Deploy Applications*
+
+// *********************************
+[#questions]
+== Questions
+
+[.noredheader,cols="65,.<45"]
+|===
+
+.2+|image:questions.png[width="95%",height="95%"]
+a|* Twitter : *{speaker-twitter}*
+|===
+
+* More info {icon-arrow-right}
+  - www.jboss.org/products/fuse.html
+  - http://www.redhat.com/en/technologies/jboss-middleware
+
+
+
+

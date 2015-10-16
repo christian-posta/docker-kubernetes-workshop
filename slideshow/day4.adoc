@@ -1,0 +1,114 @@
+:footer_copyright: Copyright ©2015 Red Hat, Inc.
+:imagesdir: images/
+:speaker: Christian Posta
+:speaker-title: Principal Middleware Architect
+:speaker-email: christian@redhat.com
+:speaker-blog: http://blog.christianposta.com
+:speaker-twitter: http://twitter.com/christianposta[@christianposta]
+:talk-speaker: {speaker}
+:talk-name: Intro: Docker and Kubernetes training - Day 4
+:talk-date: 10/19/2015
+
+[#cover,data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,width="600px",left="0px",top="200px"]
+{talk-name}
+
+[#cover-h2,width="800px",left="0px",top="450px"]
+{speaker} +
+{talk-date}
+
+// ************** who - christian ********
+[#who]
+== Who
+
+[.noredheader,cols="30,70"]
+|===
+| image:ceposta.png[width="90%",height="100%"]
+| {speaker-title}
+
+Blog: {speaker-blog}
+
+Twitter: {speaker-twitter}
+
+Email: {speaker-email} |
+|===
+
+* Committer on Apache ActiveMQ, Apache Camel, Fabric8
+* Technology evangelist, recovering consultant
+* Spent a lot of time working with one of the largest Microservices, web-scale, unicorn companies
+* Frequent blogger and speaker about open-source, cloud, microservices
+
+// ************** Agenda  ********
+[#agenda]
+== Agenda
+
+* Intro / Prep Environments
+* Day 1: Docker Deep Dive
+* Day 2: Kubernetes Deep Dive
+* Day 3: Advanced Kubernetes: Concepts, Management, Middleware
+* *Day 4: Advanced Kubernetes: CI/CD, open discussions*
+
+
+// ************** transition page ************
+[#transition1, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,width="600px",left="0px",top="400px"]
+*Setting up Docker locally*
+
+// ************** slide1 ********
+[#slide1]
+== Slide1
+
+// ************** transition page ************
+[#transition2, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Transition 2*
+
+// ************** devops ***********
+== {blank-space}
+
+[#block,width="800px",top="0px"]
+image:worked-fine-in-dev.png[width="80%"]
+
+// ************** transition page ************
+[#transition3, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Transition 3*
+
+// *********************************
+[#questions]
+== Questions
+
+[.noredheader,cols="65,.<45"]
+|===
+
+.2+|image:questions.png[width="95%",height="95%"]
+a|* Twitter : *{speaker-twitter}*
+|===
+
+* More info {icon-arrow-right}
+  - www.jboss.org/products/fuse.html
+  - http://www.redhat.com/en/technologies/jboss-middleware
+
+
+
+
