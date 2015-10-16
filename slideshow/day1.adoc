@@ -576,21 +576,29 @@ container:
 
 What about this one:
 
-  docker inspect tomcat8
+```
+docker inspect tomcat8
+```
 
 Wow... that's a lot of information about the container! We can also use a `--format` template to pick out specific info
 from that output (see `https://docs.docker.com/reference/commandline/inspect/`)
 
-  docker inspect --format='{{.NetworkSettings.IPAddress}}' tomcat8
+```
+docker inspect --format='{{.NetworkSettings.IPAddress}}' tomcat8
+```
 
 or
 
-  docker inspect --format='{{.Config.Env}}' tomcat8
+```
+docker inspect --format='{{.Config.Env}}' tomcat8
+```
 
 output:
 
+
   ceposta@postamac(~) $   docker inspect --format='{{.Config.Env}}' tomcat8
   [PATH=/usr/local/tomcat/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin LANG=C.UTF-8 JAVA_VERSION=7u79 JAVA_DEBIAN_VERSION=7u79-2.5.6-1~deb8u1 CATALINA_HOME=/usr/local/tomcat TOMCAT_MAJOR=8 TOMCAT_VERSION=8.0.28 TOMCAT_TGZ_URL=https://www.apache.org/dist/tomcat/tomcat-8/v8.0.28/bin/apache-tomcat-8.0.28.tar.gz]
+
 
 // ************** Explore a little deeper... ********
 [#stop-and-remove]
@@ -598,12 +606,16 @@ output:
 
 Feel free to play around with the container a little bit more. When finished, stop the container:
 
-  docker stop tomcat8
+```
+docker stop tomcat8
+```
 
 If you run `docker ps` you shouldn't see the container running any more. However, `docker run -a` will show all containers
 even the stopped ones. We can remove a container with:
 
-  docker rm tomcat8
+```
+docker rm tomcat8
+```
 
 Then neither `docker ps` nor `docker ps -a` should show the container.
 
@@ -617,6 +629,229 @@ image::{revealjs_cover_image}[]
 
 [#cover-h1,left="0px",top="350px",width="2000px"]
 *Docker registry*
+
+// ************** what is it********
+[#dockerformat-deep]
+== Docker Images
+
+[#block,width="100px",top="100px",left="50px"]
+image:day1/docker-layers.png[width="90%",height="90%"]
+
+// ************** what is it********
+[#dockerformat-deep]
+== Docker Images
+
+* Image tags
+* Points to a specific layer
+* Usually the last most layer gets changed
+* Can have multiple tags each pointing to diff layers; same base
+* don't use `latest` if you can help it
+
+// ************** what is it********
+[#images-on-disk]
+== Docker Images
+
+Let's start a container and check where the images/containers live on disk:
+
+```
+docker run -it --rm centos:7 bash
+```
+
+Now in another window, let's list the docker containers running:
+
+```
+docker ps
+```
+
+Take note of the container ID. Let'ss ssh into the VM and see where the images/containers are stored:
+
+```
+docker-machine ssh default
+```
+
+Now:
+
+```
+sudo su -
+cd /var/lib/docker
+find ./aufs/mnt -name <first few letters of container id>*
+```
+
+This is the location where your container lives. If you inspect that folder, you'll see the running container's
+files right there.
+
+Each directory in that location is a layer in the image. If you matched `docker images -a` you should see all of those
+layers in the /var/lib/docker/aufs/mnt folder
+
+// ************** what is it********
+[#storage-backends]
+== Device backends
+
+* vfs
+** Simple
+** No copy-on-write support (deep copy)
+** Each layer is a complete listing of the FS
+** Robust/portable
+* devicemapper
+** block-level copy on write
+* aufs
+** original docker backend
+** not supported upstream (Fedora)
+** not supported RHEL
+** regular files and aufs metadata
+** works on files/not blocks
+
+// ************** what is it********
+[#docker-hub]
+== Public/private docker registry
+
+* Docker hub: `http://docker.io`
+* Can host public images
+** ie, search for fedora, or jenkins, etc
+* Can also host private repos (like github)
+* Other registries:
+** JFrog
+** Quay.io
+** Google Container Registry
+
+// ************** enterprise docker registry********
+[#enterprise-registry]
+== Enterprise docker registry
+
+* Be careful with images on Docker hub
+** vulnerabilities
+** run as root
+** http://www.infoq.com/news/2015/05/Docker-Image-Vulnerabilities
+* Use trusted registries
+* Red Hat Docker registry
+** registry.access.redhat.com:5000
+
+Try pulling:
+
+```
+docker pull registry.access.redhat.com/rhel7
+```
+
+// ************** creating images********
+[#creating-images]
+== Creating Docker images
+
+Encouraged to build docker images from `Dockerfile` s
+
+```
+FROM fabric8/java-agent-bond
+
+MAINTAINER fabric8@googlegroups.com
+
+ENV CLASSPATH /maven/*:/maven
+
+RUN mkdir /maven
+
+EXPOSE 8778 9779
+
+ADD run.sh /fabric8/run.sh
+CMD [ "/fabric8/run.sh" ]
+```
+
+// ************** creating images********
+[#dockerfile]
+== Dockerfile
+
+Constructs such as the following:
+
+* *`FROM`*
+* *`ADD`*
+* *`COPY`*
+* *`USER`*
+* *`ENV`*
+* *`VOLUME`*
+* *`WORKDIR`*
+* *`CMD`*
+* *`ENTRYPOINT`*
+
+
+// ************** creating images********
+[#dockerfile2]
+== Advanced Dockerfile
+```
+FROM ubuntu:14.04
+
+MAINTAINER fabric8.io (http://fabric8.io/)
+
+ENV GERRIT_HOME /home/gerrit
+ENV GERRIT_TMP_DIR /home/tmp
+ENV GERRIT_USER gerrit
+ENV GERRIT_VERSION 2.11
+
+RUN \
+  sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
+  apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y sudo vim-tiny git && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-7-jre-headless && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+
+# Add user gerrit & group like also gerrit to sudo to allow the gerrit user to issue a sudo cmd
+RUN groupadd $GERRIT_USER && \
+    useradd -r -u 1000 -g $GERRIT_USER $GERRIT_USER
+
+RUN mkdir ${GERRIT_HOME}
+
+# Download Gerrit
+ADD http://gerrit-releases.storage.googleapis.com/gerrit-${GERRIT_VERSION}.war ${GERRIT_HOME}/${GERRIT_WAR}
+
+# Copy the files to bin, config & job folders
+ADD ./configs ${GERRIT_HOME}/configs
+
+# Copy the plugins
+ADD ./plugins ${GERRIT_HOME}/plugins
+
+WORKDIR ${GERRIT_HOME}
+
+EXPOSE 8080 29418
+CMD ["/home/gerrit/bin/conf-and-run-gerrit.sh"]
+```
+
+// ************** creating images********
+[#diff-cmd-entrypoing]
+== Difference between CMD and ENTRYPOINT
+
+* *`CMD`* can be overridden at run time
+** docker run -it centos:7 <command_to_run>
+* *`ENTRYPOINT`* fixed command, pass things in as parameters
+** docker run -it centos:7 <params to add>
+
+// ************** creating images********
+[#demo-creating-images]
+== Creating Docker images
+
+Copy paste this into `Dockerfile`
+
+```
+FROM fabric8/java-agent-bond
+
+MAINTAINER fabric8@googlegroups.com
+
+ENV CLASSPATH /maven/*:/maven
+
+RUN mkdir /maven
+
+EXPOSE 8778 9779
+
+ADD run.sh /fabric8/run.sh
+CMD [ "/fabric8/run.sh" ]
+```
+
+Run the folowing command from the directory that has the `Dockerfile`
+
+```
+docker build -t fabric8.io/docker-java .
+```
+
+Don't forget the `.` character!
+
+
+
 
 // ************** transition page ************************************************************************
 [#deploy-apps, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]

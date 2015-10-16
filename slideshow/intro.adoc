@@ -71,6 +71,7 @@ image::{revealjs_cover_image}[]
 * Lab prerequisites in place!
 * Verify you have Oracle VirtualBox 4.3.x
 * Install Docker (https://docs.docker.com/installation/)
+** NOTE: for OS X, you can use brew: `brew install docker-machine`
 * Windows: need to have HVT
 * Understand the architecture
 * Smoke test
