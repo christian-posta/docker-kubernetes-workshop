@@ -1,0 +1,65 @@
+source: slideshow
+destination: slideshow/generated
+backend: revealjs-redhat
+rendering: adoc2html     
+
+mode: 'development' # Default value = production. Available : 'production', 'development"
+tracer: 'false'
+level: 'INFO' # Values available : DEBUG, INFO, WARN, ERROR, FATAL. Default for production : 'WARN' and development 'DEBUG'
+logname: hyla.log # Name of the log file
+
+attributes:
+  linkcss!: true
+  data-uri: true
+  allow-uri-read:
+  idprefix:
+  linkattrs:
+  linkcss:
+  # scripts: jquery-1.11.2.min.js,gpe.min.js
+  # scriptsdir: revealjs-redhat/lib/js
+
+  # Code source highlight
+  source-highlighter: highlightjs # prettify, pygments, coderay, highlightjs
+  highlightjs-theme: zenburn # highlightjs-theme: solarized_dark , github, foundation, zenburn, dark, solarized_light, zenburn, docco, atelier-heath.light, tomorrow-night-blue, tomorrow-night-eighties
+
+  # Font Icons - http://fortawesome.github.io/Font-Awesome/icons/
+  icon-arrow-left: <i class="fa fa-arrow-left"></i>
+  icon-arrow-right: <i class="fa fa-arrow-right"></i>
+  icon-arrow-down: <i class="fa fa-arrow-down" style="color:rgb(167,0,0)"></i>
+  icon-arrow-downcenter: <i class="fa fa-arrow-down" style="color:rgb(167,0,0);text-align:center;"></i>
+  icon-arrow-up: <i class="fa fa-arrow-up" style="color:rgb(167,0,0)"></i>
+  icon-plus: <i class="fa fa-plus"></i>
+  icon-exclamation-mark: <i class="fa fa-exclamation"></i>
+  icon-exclamation-triangle: <i class="fa fa-triangle fa-4x"></i>
+  icon-question-mark: <i class="fa fa-question"></i>
+  icon-cloud: <i class="fa fa-cloud"></i>
+  icon-smile-o: <i class="fa fa-smile-o"></i>
+  icon-ambulance: <i class="fa fa-ambulance"></i>
+  icon-cogs: <i class="fa fa-cogs"></i>
+  icon-wrench: <i class="fa fa-wrench"></i>
+  icon-co-spin: <i class="fa fa-cog fa-spin"></i>
+  icon-frown-o: <i class="fa fa-frown-o"></i>
+  icon-angle-double-right: <i class="fa fa-angle-double-right"></i>
+  blank-space: '&nbsp;'
+
+  icons: font
+
+  # Use Remote resources of Font Awesome Icons (css)
+  # iconfont-remote: true # Uncomment this line
+  # iconfont-cdn: http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css
+
+  # Use Local resource of Font-Awesome
+  # iconfont-remote: # Comment this line
+  iconfont-name: font-awesome-4.3.0
+
+  revealjsdir: "revealjs-redhat"
+  revealjs_theme: conference # Revealjs RedHat css theme
+  revealjs_transition: none # default/cube/page/concave/zoom/linear/fade/none
+  revealjs_display_slidenumber: true
+  revealjs_history: true
+  revealjs_cover_image: redhat-logo.png
+  revealjs_partners_logo: redhat_EMEA_partnerconf_logo_2015.png
+  revealjs_scrollbar: true
+  revealjs_footer_copyright: Copyright ©2015 Red Hat, Inc.
+  revealjs_slideshow: false
+# 
