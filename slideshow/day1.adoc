@@ -444,8 +444,8 @@ Our Docker Host has been mapped properly, but we cannot reach it from our host (
 not expose those ports.
 
 // ************** Explore a little deeper... ********
-[#run-docker-explore-tomcat4]
-== Deploy Apache Tomcat
+[#map-ports-tomcat]
+== Map ports for tomcat
 
 Enable port forwarding between the VM Host (windows/Mac) and the VM Guest (Docker host):
 
@@ -453,16 +453,13 @@ Enable port forwarding between the VM Host (windows/Mac) and the VM Guest (Docke
 image:day1/port-forward.png[width="100%",height="100%"]
 
 // ************** Explore a little deeper... ********
-[#run-docker-explore-tomcat5]
-== Deploy Apache Tomcat
-
-Well, not quite. Why not?
+[#map-ports-tomcat-diagram]
+== Map ports for tomcat
 
 [#block,width="200px",top="250px",left="150px"]
 image:day1/docker-host-ports.png[width="120%",height="120%"]
 
-Our Docker Host has been mapped properly, but we cannot reach it from our host (Windows/MacOSX) because the VM does
-not expose those ports.
+
 
 
 // ************** Explore a little deeper... ********
@@ -769,6 +766,8 @@ Constructs such as the following:
 * *`CMD`*
 * *`ENTRYPOINT`*
 
+Each step in the docker file is a new image layer! Don't put passwords into the docker file!
+
 
 // ************** creating images********
 [#dockerfile2]
@@ -823,32 +822,390 @@ CMD ["/home/gerrit/bin/conf-and-run-gerrit.sh"]
 
 // ************** creating images********
 [#demo-creating-images]
-== Creating Docker images
+== Demo creating Docker images
 
-Copy paste this into `Dockerfile`
+* clone the following repository:
 
-```
-FROM fabric8/java-agent-bond
+  git clone git@github.com:fabric8io/base-images.git
 
-MAINTAINER fabric8@googlegroups.com
+* `cd` into ./base-images/java/images/centos/openjdk8/jdk
 
-ENV CLASSPATH /maven/*:/maven
 
-RUN mkdir /maven
-
-EXPOSE 8778 9779
-
-ADD run.sh /fabric8/run.sh
-CMD [ "/fabric8/run.sh" ]
-```
 
 Run the folowing command from the directory that has the `Dockerfile`
 
 ```
-docker build -t fabric8.io/docker-java .
+docker build -t local.io/docker-java:latest .
 ```
 
 Don't forget the `.` character!
+
+Now list the docker images:
+
+```
+docker images
+```
+
+output:
+
+  ceposta@postamac(jdk (master)) $ docker images
+  REPOSITORY                         TAG                 IMAGE ID            CREATED                  VIRTUAL SIZE
+  local.io/docker-java               latest              8d11c57aafa6        Less than a second ago   431 MB
+  tomcat                             8.0                 1e41e2ebc383        2 days ago               347.7 MB
+  centos                             7                   e9fa5d3a0d0e        3 days ago               172.3 MB
+  registry.access.redhat.com/rhel7   latest              82ad5fa11820        5 weeks ago              158.3 MB
+  registry.access.redhat.com/rhel    latest              82ad5fa11820        5 weeks ago              158.3 MB
+
+
+// ************** local docker registry ********
+[#local-docker-registry]
+== Running a local docker registry
+
+* The old "python" based docker registry (before Docker 1.6 has been deprecated
+* New docker registry exists in "Docker Distribution" tools
+* https://github.com/docker/distribution
+* Can run local / scaled out docker registries
+* Backed by storage
+* Getting started: https://docs.docker.com/registry/
+
+// ************** Explore a little deeper... ********
+[#local-registry-arch]
+== Registry architecture
+
+[#block,width="200px",top="150px",left="150px"]
+image:day1/local-registry.png[width="170%",height="170%"]
+
+// ************** Explore a little deeper... ********
+[#local-registry-backends]
+== Registry architecture
+
+Storage backends:
+
+* Implemented with a Storage API that can be extended
+* https://docs.docker.com/registry/storagedrivers/
+* *`inmemory`* local, in-memory; only expected for testing/reference
+* *`filesystem`* local-storage driver
+* *`s3`* Amazon S3 buckets
+* *`azure`* Microsoft blob storage
+* *`rados`* Ceph object storage
+* *`swift`* OpenStack object storage
+* *`oss`* Aliyun OSS
+
+// ************** Explore a little deeper... ********
+[#deploy-registry]
+== Registry architecture
+
+Let's deploy a local registry and try it out
+
+```
+docker run -d -p 5000:5000 --name registry registry:2
+```
+
+Note, you'll need to link:#map-ports-tomcat[open ports 5000 on your VM to allow forwarding to work]
+
+output:
+
+  ceposta@postamac(temp) $ docker run -d -p 5000:5000 --name registry registry:2
+  Unable to find image 'registry:2' locally
+  2: Pulling from library/registry
+
+  f9a9f253f610: Pull complete
+  eeb7cb91b09d: Pull complete
+  3c9a9d7cc6a2: Pull complete
+  0a17decee413: Pull complete
+  cc85b2c38995: Pull complete
+  24a16bad4623: Pull complete
+  ec4c9e01c657: Pull complete
+  e200ab995df6: Pull complete
+  b3b2a507517e: Pull complete
+  34e7db8ae1dc: Pull complete
+  2eafecf5086b: Pull complete
+  Digest: sha256:802127562bcb59ac617a1296d70023258f22fc3e401fa86c866447a8c36e4278
+  Status: Downloaded newer image for registry:2
+  d89a9c4719089af289e38bcc436dff0db37aa1e82ebbe5e19ce508d87dd9cd0a
+
+// ************** Explore a little deeper... ********
+[#push-to-registry]
+== Push to registry
+
+Let's tag and push our previously created docker image to our new registry:
+
+```
+docker tag local.io/docker-java localhost:5000/local.io/docker-java
+```
+
+then push it:
+
+```
+docker push localhost:5000/local.io/docker-java
+```
+
+output:
+
+  ceposta@postamac(jdk (master)) $ docker push localhost:5000/local.io/docker-java
+  The push refers to a repository [localhost:5000/local.io/docker-java] (len: 1)
+  8d11c57aafa6: Image successfully pushed
+  f17de9438beb: Image successfully pushed
+  b492cca03931: Image successfully pushed
+  9e3ba2489e43: Image successfully pushed
+  e7c1009b53b0: Image successfully pushed
+  0a4fb08c5519: Image successfully pushed
+  78c95afc4258: Image successfully pushed
+  85d17ebc1200: Image successfully pushed
+  83af41871016: Image successfully pushed
+  9dbce2cf69a6: Image successfully pushed
+  d33d90067fc7: Image successfully pushed
+  0aa3329df0b4: Image successfully pushed
+  e9fa5d3a0d0e: Image already exists
+  c9853740aa05: Image already exists
+  e9407f1d4b65: Image already exists
+  0cd86ce0a197: Image successfully pushed
+  fa5be2806d4c: Image already exists
+  latest: digest: sha256:0cebcc42cbc25848524eff2cf4aa9d5a47e5d360c5ebfb931e6d33cfd8a38b97 size: 29837
+
+
+// ************** transition page ************************************************************************
+[#deploy-javaee, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Deploying Java EE applications*
+
+
+// ************** Deploy Java EE ********
+[#deploy-javaee-server]
+== Deploying a Java EE app server
+
+First map the ports `8080` and `9990` from the VM to your host link:#map-ports-tomcat[following the steps previusly].
+
+We will follow the similar steps we used to deploy Tomcat and will re-use the port mappings we had earlier.
+Verify your tomcat server is no longer running on `8888` and follow these steps:
+
+
+```
+docker pull arungupta/wildfly-management
+docker run -d -p 9990:9990 -p 8080:8080 --name wildfly arungupta/wildfly-management
+docker ps
+
+```
+
+Navigate to link:http://localhost:8080[http://localhost:8080] to see the main page. Click "Administration Console" and login to the management console with `admin/docker#admin`
+
+You can deploy applictions using the admin console... or do it the Docker way!
+
+// ************** Deploy Java EE ********
+[#deploy-javaee-application]
+== Deploying a Java EE application
+
+As discussed earlier, the "Docker way" is to package up your app as a new layer on top of the app server Docker image:
+Let's look at an example Dockerfile:
+
+```
+# Use latest jboss/wildfly
+FROM jboss/wildfly
+
+MAINTAINER "Rafael Benevides" <benevides@redhat.com>
+
+#Create admin user
+RUN /opt/jboss/wildfly/bin/add-user.sh -u admin -p docker#admin --silent
+
+# Add customization folder
+COPY customization /opt/jboss/wildfly/customization/
+
+USER root
+
+# Run customization scripts as root
+RUN chmod +x /opt/jboss/wildfly/customization/execute.sh
+RUN /opt/jboss/wildfly/customization/execute.sh standalone standalone-ha.xml
+
+ADD ticket-monster.war /opt/jboss/wildfly/standalone/deployments/
+
+# Fix for Error: Could not rename /opt/jboss/wildfly/standalone/configuration/standalone_xml_history/current
+RUN rm -rf /opt/jboss/wildfly/standalone/configuration/standalone_xml_history
+
+RUN chown -R jboss:jboss /opt/jboss/wildfly/
+
+USER jboss
+
+# Expose the ports we're interested in
+EXPOSE 8080 9990
+
+# Set the default command to run on boot
+# This will boot WildFly in the standalone mode and bind to external interface and enable HA
+CMD /opt/jboss/wildfly/bin/standalone.sh -b `hostname -i` -bmanagement `hostname -i` -c standalone-ha.xml
+```
+
+// ************** Deploy Java EE ********
+[#deploy-javaee-application2]
+== Deploying a Java EE application
+
+Deploy the application:
+
+First stop and remove the previous wildfly deployment
+
+```
+docker stop wildfly
+docker rm wildfly
+```
+Now run the new app:
+
+```
+docker run -d -p 9990:9990 -p 8080:8080 --name wildfly arungupta/javaee7-hol
+```
+
+Navigate to link:http://localhost:8080/movieplex7[http://localhost:8080/movieplex7] to see the Java EE application
+
+
+// ************** transition page ************************************************************************
+[#Communicating between containers, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Communicating between docker containers*
+
+
+// ************** Docker networking ********
+[#understand-docker-bridge]
+== Quickly understand default docker networking
+
+[#block,width="200px",top="150px",left="75px"]
+image:day1/docker-network.png[width="170%",height="170%"]
+
+
+// ************** Docker networking ********
+[#understand-docker-links]
+== Linking Containers
+
+* We want containers to communicate with each other
+* Each container has an IP (veth/eth0)
+* Containers can expose virtual ports
+* Docker bridge networking can link containers without going over host network
+* How do we discover IP addresses, etc?
+
+```
+docker run --link <container_name>:alias .....
+```
+
+
+
+
+// ************** Docker networking ********
+[#understand-docker-links2]
+== Linking Containers
+
+```
+docker run --link <container_name>:alias .....
+```
+
+* Name your containers!!!!!!!
+* links depend on this
+* `alias` is what your containers will see as environment variables
+
+example:
+
+```
+docker run --rm --name web2 --link db:db training/webapp env
+```
+
+Will create these environment variables:
+
+  DB_NAME=/web2/db
+  DB_PORT=tcp://172.17.0.5:5432
+  DB_PORT_5432_TCP=tcp://172.17.0.5:5432
+  DB_PORT_5432_TCP_PROTO=tcp
+  DB_PORT_5432_TCP_PORT=5432
+  DB_PORT_5432_TCP_ADDR=172.17.0.5
+
+Your applications can then use environment variables to discover the dependent containers/services
+
+
+// ************** Docker networking ********
+[#understand-docker-links-dns]
+== Linking Containers with DNS
+
+```
+docker run -t -i --rm --link db:webdb training/webapp /bin/bash
+```
+
+Check out /etc/hosts inside the container:
+
+  172.17.0.7 aed84ee21bde
+  ...
+  172.17.0.5 webdb 6e5cdeb2d300 db
+
+So we can just refer to containers by name: `http://webdb`
+
+// ************** Docker networking ********
+[#understand-docker-links-notes]
+== Notes about linking containers
+
+* Injecting environment variables is a very powerful concept
+* Can link multiple containers together
+* The linking happens between *one host only*!!
+
+
+// ************** Linking example ********
+[#understand-docker-links-example]
+== Examples of linking:
+
+Run a database service which will be used by a Java EE application:
+
+```
+docker run --name mysqldb -e MYSQL_USER=mysql -e MYSQL_PASSWORD=mysql -e MYSQL_DATABASE=sample -e MYSQL_ROOT_PASSWORD=supersecret -p 3306:3306 -d mysql
+```
+
+Note, you may need to forward the `mysql` port `3306` in your VM.
+
+Now let's link up a Java EE application
+
+```
+docker run -d --name mywildfly --link mysqldb:db -p 8080:8080 arungupta/wildfly-mysql-javaee7
+```
+
+// ************** Linking example ********
+[#understand-docker-links-example2]
+== Examples of linking:
+
+Our app is new using the DB, but let's log into the container and verify the environment variables/DNS was set up:
+
+```
+docker exec -it mywildfly bash
+```
+
+then type the following to list environment variables:
+
+```
+env
+```
+
+You can also take a look at the `/etc/hosts` file
+
+```
+cat /etc/hosts`
+```
+
+
+  [jboss@c924917fe4ad ~]$ cat /etc/hosts
+  172.17.0.30     c924917fe4ad
+  127.0.0.1       localhost
+  ::1     localhost ip6-localhost ip6-loopback
+  fe00::0 ip6-localnet
+  ff00::0 ip6-mcastprefix
+  ff02::1 ip6-allnodes
+  ff02::2 ip6-allrouters
+  172.17.0.28     db ef59a1b98326 mysqldb
+  172.17.0.30     mywildfly.bridge
+  172.17.0.18     registry
+  172.17.0.18     registry.bridge
+  172.17.0.28     mysqldb
+  172.17.0.28     mysqldb.bridge
+  172.17.0.30     mywildfly
 
 
 
