@@ -1208,17 +1208,160 @@ cat /etc/hosts`
   172.17.0.30     mywildfly
 
 
-
-
 // ************** transition page ************************************************************************
-[#deploy-apps, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+[#stateful-containers, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
 [#block,width="200px",left="70px",top="0px"]
 image::{revealjs_cover_image}[]
 
 [#cover-h1,left="0px",top="350px",width="2000px"]
-*Deploy Applications*
+*Stateful containers*
+
+// ************** Volumes ********
+[#docker-no-state]
+== Docker containers have no state!
+
+* Containers are ephemeral!!!
+* Nothing is saved from a container if it goes away
+* Containers get new IP addresses
+* Don't treat containers as VMs: they are not!!
+* But what about stateful applications?
+
+
+// ************** Volumes ********
+[#docker-volumes]
+== Docker volumes
+
+* Docker volumes to the rescue!
+* Persist data outside of the container
+* Can be mapped directly to Host locations
+* Can also be deployed independently of hosts/indirectly
+
+Example:
+
+```
+docker run -d -P --name web -v /webapp training/webapp python app.py
+```
+
+
+// ************** Volumes ********
+[#docker-volumes-example1]
+== Example Docker volumes
+
+Example:
+
+```
+docker run -d -P --name web -v /webapp training/webapp python app.py
+```
+
+[#block,width="200px",top="250px",left="150px"]
+image:day1/docker-vol.png[width="120%",height="120%"]
+
+// ************** Volumes ********
+[#docker-volumes-host]
+== Docker host volumes
+
+We can also map volumes directly to Host storage locations:
+
+* Useful for known locations on Host
+* Can use NFS mounts
+* Files are visible outside of the container and are persisted
+* Can restart new containers up with same location
+
+```
+docker run -d -P --name web -v /src/webapp:/opt/webapp training/webapp python app.py
+```
+
+
+// ************** Volumes ********
+[#docker-volumes-example2]
+== Example Docker host volumes
+
+Example:
+
+```
+docker run -d -P --name web -v /src/webapp:/opt/webapp training/webapp python app.py
+```
+
+[#block,width="200px",top="250px",left="150px"]
+image:day1/docker-vol-host.png[width="120%",height="120%"]
+
+
+// ************** Volumes ********
+[#docker-volumes-container-data]
+== Containers as data volumes
+
+Start a container that will manage the volume
+
+```
+docker create -v /dbdata --name dbdata training/postgres /bin/true
+```
+
+Now other containers can use that container so they're not tied directly to the volumes (mounting them, etc):
+
+```
+docker run -d --volumes-from dbdata --name db1 training/postgres
+```
+
+[#block,width="200px",top="300px",left="75px"]
+image:day1/docker-vol-datacontainer.png[width="120%",height="120%"]
+
+
+// ************** Volumes ********
+[#docker-volumes-jenkins-example1]
+== Jenkins example
+
+Let's take an example using Jenkins. We can fire up Jenkins containers, add build jobs, etc.
+But if we delete the container, the jobs are lost.
+
+```
+docker run -d --name jenkins -p 8080:8080 jenkins
+```
+
+We can save the changes and jobs that jenkins creates by adding a host volume:
+
+```
+docker run -d --name jenkins -p 8080:8080 -v /your/home:/var/jenkins_home jenkins
+```
+
+Now when you run jenkins, you can stop, destroy, and re-run jenkins and your build jobs should be there.
+
+
+
+
+
+
+// ************** transition page ************************************************************************
+[#cool-docker, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Other cool docker stuff*
+
+
+
+
+// ************** Things to know ********
+[#docker-volumes-jenkins-example1]
+== Things to know
+
+* Docker runs on a single host!
+* `/var/lib/docker` needs to be managed!
+* Use only what you need in your images (avoid image bloat)
+* Don't run as root
+* Be careful with docker images on Docker Hub (use trusted images only)
+* Container security... containers do not "contain"
+** http://opensource.com/business/14/7/docker-security-selinux
+* always use image tags
+* Use sanity scripts to boot your process from within container
+* One task per container!
+
+
+
 
 // *********************************
 [#questions]
