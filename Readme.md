@@ -17,3 +17,8 @@ This workshop requires you to bring your own laptop and have the following prere
 * Vagrant -- [download here](http://www.vagrantup.com/downloads.html)
 
 The slides will walk you through setting up Docker and Kubernetes, etc
+
+
+## Credits
+
+Huge shout out to the work [Kelsey Hightower](https://github.com/kelseyhightower/) does in the kubernetes community, and providing his [intro to kubernetes](https://github.com/kelseyhightower/intro-to-kubernetes-workshop) workshop on github.com I've used some of the `inspector` app RC and service definitions to illustrate the respective concepts. 
