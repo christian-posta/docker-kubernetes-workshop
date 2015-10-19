@@ -980,6 +980,91 @@ image:day2/pod-selectors.png[width="150%",height="150%"]
 
 Everything.
 
+
+
+// ************** transition page **************************************************************************************
+[#transition-repl, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="250px",width="2000px"]
+*Scaling and ensuring cluster invariants*
+
+// ************** Kubernetes intro ***********
+[#repl-makeitso]
+== Replication controllers
+
+[#block,width="200px",left="50px",top="170px"]
+image:day2/make-it-so.png[height="200%",width="200%"]
+
+// ************** Kubernetes intro ***********
+[#replcontrollers-intro]
+== Replication controllers
+
+* Can configure the number of *replicas* of a pod
+* Will be scheduled across applicable nodes
+* Replication controllers can change *replica* value to scale up/down
+* Which pods are scaled depends on RC selector
+* Labels and selectors are the backbone of grouping
+
+
+// ************** Kubernetes intro ***********
+[#replcontrollers-intro]
+== Replication controllers
+
+* Can even do complicated things with labels/RCs
+* Take a pod out of cluster by changing its label
+* Can have multiple RCs so no SPOF
+* If a pod is unhealth (health prob), RC can kill and restart
+
+// ************** Kubernetes intro ***********
+[#replcontrollers-eg]
+== Example Replication controller
+
+```
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    app: inspector
+    track: stable
+  name: inspector
+spec:
+  replicas: 1
+  selector:
+    app: inspector
+    track: stable
+  template:
+    metadata:
+      labels:
+        app: inspector
+        track: stable
+    spec:
+      containers:
+      - image: b.gcr.io/kuar/inspector:1.0.0
+        imagePullPolicy: IfNotPresent
+        name: inspector
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+status:
+  observedGeneration: 1
+  replicas: 1
+```
+
+// ************** Kubernetes intro ***********
+[#replcontrollers-eg-locally]
+== Example Replication controller
+
+On your cluster, run the following command:
+
+```
+curl -s -L | kubectl create -f -
+```
+
 // ************** transition page **************************************************************************************
 [#questions]
 == Questions

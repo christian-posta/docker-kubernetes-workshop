@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    app: inspector
+    track: stable
+  name: inspector
+spec:
+  replicas: 1
+  selector:
+    app: inspector
+    track: stable
+  template:
+    metadata:
+      labels:
+        app: inspector
+        track: stable
+    spec:
+      containers:
+      - image: b.gcr.io/kuar/inspector:1.0.0
+        imagePullPolicy: IfNotPresent
+        name: inspector
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+status:
+  observedGeneration: 1
+  replicas: 1

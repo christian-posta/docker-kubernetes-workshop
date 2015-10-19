@@ -3,9 +3,10 @@ kind: Pod
 metadata:
   name: pod-w-message
 spec:
-  restartPolicy: Never
+  restartPolicy: Always
   containers:
   - name: messager
     image: "centos:7"
     command: ["/bin/sh","-c"]
     args: ["sleep 60 && /bin/echo Sleep expired > /dev/termination-log"]
+    terminationMessagePath: /dev/termination-log
