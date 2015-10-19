@@ -782,10 +782,75 @@ Kubernetes offers a few persistence mechanisms out of the box:
 [#pods-volumes-hostpath]
 == Stateful containers
 
-In tomorrow's demo, we'll show how to use a shared-storage mechanism in Google Compute Engine to create stateful pods. But for now, we'll just map to a location on the Node/host. Note this has implications about pod rescheduling etc that will discussed in the class:
+In tomorrow's demo, we'll show how to use a shared-storage mechanism in Google Compute Engine to create stateful pods. But for now, we'll just map to a location on the Node/host. Note this has implications about pod rescheduling etc that will discussed in the class.
+
+Let's create the Kubernetes Persistent Volume
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/hands-on-pods/local-persistent-volume.yaml | kubectl create -f -
+```
+
+Now we're going to create a "claim" for persistent volume space (details explained in class):
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/hands-on-pods/local-pvc.yaml | kubectl create -f -
+```
+
+Make sure our influxdb pod is stopped
+
+```
+kubectl stop pod influxdb
+```
+
+And now deploy our new pod that uses the PersistentVolume:
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/hands-on-pods/influxdb-local-pv.yaml | kubectl create -f -
+```
+
+// ************** Kubernetes deep dive ***********
+[#pods-volumes-query-influx]
+== Stateful containers
+
+Now let's figure out what IP address the new influxd pod lives:
+
+```
+kubectl describe pod/influxdb
+```
+
+And now let's query/interact with influxdb
+
+```
+export INFLUX_NODE=10.246.1.7
+curl -G "http://$INFLUX_NODE:8086/query" --data-urlencode "q=CREATE DATABASE kubernetes"
+curl -X POST "http://$INFLUX_NODE:8086/write?db=kubernetes" -d 'pod,host=node0 count=10'
+curl -X POST "http://$INFLUX_NODE:8086/write?db=kubernetes" -d 'pod,host=node1 count=9'
+curl -X POST "http://$INFLUX_NODE:8086/write?db=kubernetes" -d 'pod,host=node2 count=12'
+curl -G "http://$INFLUX_NODE:8086/query?pretty=true" --data-urlencode "db=kubernetes" --data-urlencode "q=SELECT SUM(count) FROM pod"
+```
 
 
+// ************** Kubernetes deep dive ***********
+[#pods-volumes-query-influx-restart]
+== Stateful containers
 
+Now let's kill the pod and restart it. We should see the same databases and data in the influxbd even after we restart it:
+
+```
+kubectl stop pod/influxdb
+```
+
+Restart it:
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/hands-on-pods/influxdb-local-pv.yaml | kubectl create -f -
+```
+
+Query it:
+
+```
+curl -G "http://$INFLUX_NODE:8086/query?pretty=true" --data-urlencode "db=kubernetes" --data-urlencode "q=SELECT SUM(count) FROM pod"
+```
 
 // ************** Kubernetes deep dive ***********
 [#pods-in-production]
