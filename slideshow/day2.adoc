@@ -1081,7 +1081,7 @@ You should see:
 [#replcontrollers-eg-scale]
 == Example scale up
 
-We want to change the value of the `*replicas*` for our `inspector` replication controller to scale up:
+We want to change the value of the *`replicas`* for our `inspector` replication controller to scale up:
 
 ```
 kubectl scale rc inspector --replicas=5
@@ -1121,9 +1121,246 @@ Now when you get the pods, there should just be two. Kubernetes decides which on
     inspector-r5bqo   1/1       Running   0          20m
 
 
+
+// ************** Scaling pods ***********
+[#replcontrollers-auto]
+== Autoscaling
+
+* Ongoing work in the community
+** https://github.com/kubernetes/kubernetes/blob/master/docs/proposals/autoscaling.md
+* Use existing monitoring tools to provide scaling
+
+
+// ************** transition page **************************************************************************************
+[#transition-services, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="250px",width="2000px"]
+*Loadbalancing, service discovery*
+
+
+// ************** Services ***********
+[#intro-services]
+== You have lots of pods
+
+* Pods have their own IP address
+* Pods can come and go; they're fungible
+* Replication controllers maintain replica invariants
+* So you have lots of Pods and IPs, which do you use?
+* Use labels for grouping
+* Kubernetes services does the heavy lifting of finding Pods
+
+
+// ************** Services ***********
+[#services]
+== Kubernetes Services
+
+* Decouple providers and accessors of services
+* Don't depend on Pod IPs directly
+* Need to find pods that match certain selection criteria
+** mmm... labels and selectors again :)
+* Pods can live on any node
+* Use a single IP that doesn't change
+* Virtual IP load balancing and discovery
+
+
+// ************** Services ***********
+[#services-example-arch]
+== Kubernetes Services example
+
+[#block,width="200px",top="70px",left="0px"]
+image:day2/services.png[width="170%",height="170%"]
+
+
+// ************** Services ***********
+[#services-example-yaml]
+== Kubernetes Services example
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: inspector
+  labels:
+    app: inspector
+spec:
+  type: NodePort
+  selector:
+    app: inspector
+  ports:
+  - name: http
+    nodePort: 36000
+    port: 80
+    protocol: TCP
+```
+
+// ************** Services ***********
+[#services-example-no-selector]
+== Kubernetes Services -- no selectors
+
+* Use selectors to locate existing kubernetes pods
+* Use a service w/out selectors to point to external services
+** DB running outside of Kubernetes
+
+```
+---
+  kind: "Service"
+  apiVersion: "v1"
+  metadata:
+    name: "my-service"
+  spec:
+    ports:
+      -
+        protocol: "TCP"
+        port: 80
+        targetPort: 9376
+```
+
+
+// ************** Services ***********
+[#services-example-no-selector2]
+== Kubernetes Services -- no selectors
+
+Endpoint objects will not be created; will need to make those and point them where you want:
+
+```
+---
+  kind: "Endpoints"
+  apiVersion: "v1"
+  metadata:
+    name: "my-service"
+  subsets:
+    -
+      addresses:
+        -
+          IP: "1.2.3.4"
+      ports:
+        -
+          port: 80
+```
+
+// ************** Services ***********
+[#how-it-works-services2]
+== How it works
+
+* When a new service/endpoint object created in etcd
+* kube-proxy opens a port on the node
+* Connections to that port will be proxied to the pods
+* kube-proxy maintains iptables routing from the clusterIP (VIP) to the node port
+
+// ************** Services ***********
+[#how-it-works-services]
+== How it works
+
+[#block,width="200px",top="70px",left="0px"]
+image:day2/services-overview.png[width="170%",height="170%"]
+
+// ************** Services ***********
+[#how-it-works-services]
+== Discovering services from collaborators
+
+* Example, UI pods need to use DB pods
+*Environment variables
+** {SVCNAME}_SERVICE_HOST
+** {SVCNAME}_SERVICE_PORT
+** implies an __ordering__ requirement: service must have been created first!
+* DNS (as a cluster addon — recommended)
+** {SVCNAME}.{NSNAME}
+** eg: my-service.my-namespace would be how you find a service in the my-namespace namespace
+
+Example:
+
+```
+REDIS_MASTER_SERVICE_HOST=10.0.0.11
+REDIS_MASTER_SERVICE_PORT=6379
+REDIS_MASTER_PORT=tcp://10.0.0.11:6379
+REDIS_MASTER_PORT_6379_TCP=tcp://10.0.0.11:6379
+REDIS_MASTER_PORT_6379_TCP_PROTO=tcp
+REDIS_MASTER_PORT_6379_TCP_PORT=6379
+REDIS_MASTER_PORT_6379_TCP_ADDR=10.0.0.11
+```
+
+
+
+// ************** Services ***********
+[#service-types]
+== Service types
+
+* ClusterIP — default, create an internal IP that can be used within pods for service discovery
+* NodePort — open a port on all of the nodes that the service listens on (can be accessed from outside the cluster)
+** set type == “NodePort”
+** Will allocate a port in the default range (can be configured): 30000-32767
+** will set spec.ports.nodePort for you
+*** can set it manually and it will try to use this fixed port, or it will fail
+** can then use your own loadbalancers and point to this specific port (external access)
+* LoadBalancer — useful for cloud providers that expose external loadbalancers
+* http://kubernetes.io/v1.0/docs/user-guide/services.html#type-loadbalancer
+
+
+// ************** Services ***********
+[#combine-service-rc]
+== Combine service and RC resources
+
+```
+---
+  kind: "List"
+  apiVersion: "v1"
+  items:
+    - kind: "Service"
+      apiVersion: "v1"
+      metadata:
+        name: "mock"
+        labels:
+          app: "mock"
+          status: "replaced"
+      spec:
+        ports:
+          - protocol: "TCP"
+            port: 99
+            targetPort: 9949
+        selector:
+          app: "mock"
+    - kind: "ReplicationController"
+      apiVersion: "v1"
+      metadata:
+        name: "mock"
+        labels:
+          app: "mock"
+          status: "replaced"
+      spec:
+        replicas: 1
+        selector:
+          app: "mock"
+        template:
+          metadata:
+            labels:
+              app: "mock"
+          spec:
+            containers:
+              - name: "mock-container"
+                image: "kubernetes/pause"
+                ports:
+                  - containerPort: 9949
+                    protocol: "TCP"
+```
+
+// ************** Services ***********
+[#service-live-examples]
+== Create a service
+
+Assuming you still have the replication controller from the previous section, let's create a service that
+exposes the `inspector` app (https://github.com/kelseyhightower/inspector/) directly on the Nodes.
+
+
+``` 
+
 // ************** transition page **************************************************************************************
 [#questions]
 == Questions
+
 
 [.noredheader,cols="65,.<45"]
 |===
