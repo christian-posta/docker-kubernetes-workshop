@@ -514,7 +514,7 @@ image:day1/tomcat.png[width="100%",height="100%"]
 We have a running container that has tomcat in it! WooHoo! Let's explore the tomcat container really quick.
 Fire up a new shell window (separate than the running tomcat docker container from previous)
 
-``
+```
 docker ps
 ```
 

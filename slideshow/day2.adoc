@@ -397,6 +397,7 @@ image::{revealjs_cover_image}[]
 
 * A pod is one or more docker containers
 * Ensures collocation / shared fate
+* Pods are scheduled and do not move nodes
 * Docker containers share resources within the pod
 ** Volumes
 ** Network / IP
@@ -443,6 +444,8 @@ image:day2/pod-creation.png[height="175%",width="175%"]
 [#deep-pods-restart-policy]
 == Pod restart policies
 
+* Pods restarted on single node
+* Only replication controller reschedules
 * RestartPolicy
 ** Always (default)
 ** OnFailure
@@ -861,8 +864,121 @@ curl -G "http://$INFLUX_NODE:8086/query?pretty=true" --data-urlencode "db=kubern
 * Leverage readiness and liveness probes
 * Consider resources (CPU/Mem) limites/quotas
 * Use termination messages
-** /dev/termination-log
-** Quick Demo?
+
+
+// ************** transition page **************************************************************************************
+[#grouping, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Grouping, organizing your cluster*
+
+
+// ************** Labels ********
+[#grouping-concepts]
+== Grouping
+
+* Decouple application dimensions from infrastructure deployments
+** Tiers
+** Release Tracks
+** Grouping of microservices
+* Kubernetes clusters are dynamic
+* Predicated on failure
+* Need a way to identify groups of services
+* Be able to add/remove from group on failures
+* Needs to be flexible
+* Queryable
+* Kubernetes Labels
+
+
+// ************** Labels ********
+[#what-are-labels]
+== What are Kubernetes Labels?
+
+* Arbitrary metadata
+* Attach to any API objects
+** eg, Pods, ReplicationControllers, Endpoints, etc
+* Simple *key=value* assignments
+* Can be queried with *selectors*
+
+
+// ************** Labels ********
+[#label-examples]
+== Examples
+
+* release=stable, release=canary
+* environment=dev, environment=qa, environment=prod
+* tier=frontend, tier=backend, tier=middleware
+* partition=customerA, partition=customerB, etc
+* used to group “like” objects — no expectation of uniqueness
+
+
+// ************** Labels ********
+[#key-values]
+== Keys and Values
+
+* The structure of a key:
+** <prefix>/<name>
+** example key *`org.apache.hadoop/partition`*
+* Prefix can be up to `253` chars
+* Name can be up to `63` chars
+* Values can be ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.)
+* Values can be up to `63` chars
+
+// ************** Labels ***********
+[#examplelabels]
+== Example labels
+
+[#block,width="200px",top="70px",left="25px"]
+image:day2/label-pods.png[width="150%",height="150%"]
+
+
+// ************** Labels ********
+[#selecors]
+== Selectors for grouping
+
+Labels are queryable metadata; selectors can do the queries:
+
+* Equality based
+** environment *=* production
+** tier *!=* frontend
+** combinations: "tier != frontend, version = 1.0.0"
+* Set based
+** environment *in* (production, pre-production)
+** tier *notin* (frontend, backend)
+** partition
+
+
+// ************** Labels ***********
+[#exampleselectors]
+== Example Selectors
+
+[#block,width="200px",top="70px",left="25px"]
+image:day2/pod-selectors.png[width="150%",height="150%"]
+
+// ************** Labels ********
+[#annotations]
+== Annotations
+
+* Attaching useful metadata to objects; not queryable
+* Data that you want to know to build context; easy to have it close
+** Author information
+** build date/timestamp
+** links to SCM
+** PR numbers/gerrit patchsets
+* Annotations are *not* queryable *use labels for that)
+* Can build up tooling around annotations
+* link:https://oss.sonatype.org/content/repositories/public/io/fabric8/quickstarts/quickstart-karaf-camel-log/2.2.49-SNAPSHOT/quickstart-karaf-camel-log-2.2.49-20151014.171515-12-kubernetes.json[Examples]
+
+
+// ************** Labels ********
+[#what-should-you]
+== What should you label and annotate?
+
+Everything.
 
 // ************** transition page **************************************************************************************
 [#questions]
