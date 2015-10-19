@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: influxdb
+  name: influxdb
+spec:
+  containers:
+    - image: docker.io/tutum/influxdb:latest
+      name: influxdb
+      ports:
+        - containerPort: 8083
+          name: admin
+          protocol: TCP
+        - containerPort: 8086
+          name: http
+          protocol: TCP

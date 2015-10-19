@@ -822,6 +822,7 @@ Each step in the docker file is a new image layer! Don't put passwords into the 
 // ************** Docker registry ********
 [#dockerfile2]
 == Advanced Dockerfile
+
 ```
 FROM ubuntu:14.04
 
@@ -1436,9 +1437,3 @@ image::{revealjs_cover_image}[]
 .2+|image:questions.png[width="95%",height="95%"]
 a|* Twitter : *{speaker-twitter}*
 |===
-
-
-
-
-
-

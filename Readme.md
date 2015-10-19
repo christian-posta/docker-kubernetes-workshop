@@ -14,5 +14,6 @@ This workshop requires you to bring your own laptop and have the following prere
 * Git client -- [download here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 * Apache Maven -- [download here](https://maven.apache.org/download.cgi)
 * VirtualBox -- [download here](https://www.virtualbox.org/wiki/Download_Old_Builds_4_3)
+* Vagrant -- [download here](http://www.vagrantup.com/downloads.html)
 
 The slides will walk you through setting up Docker and Kubernetes, etc

@@ -62,13 +62,51 @@ Email: {speaker-email} |
 image::{revealjs_cover_image}[]
 
 [#cover-h1,width="600px",left="0px",top="400px"]
-*Setting up Docker locally*
+*Quick Recap*
 
-// ************** slide1 ********
-[#slide1]
-== Slide1
+// ************** Recap ********
+[#recap1]
+== Recap Docker
 
-// ************** transition page ************
+* *Linux* containers
+* Docker API
+* Images
+* Containers
+* Registry
+
+// ************** Recap ********
+[#recap2]
+== Why  Docker matters
+
+* Application distribution
+* Dependency management
+* Application density
+* Reduced management overhead in terms of VMs
+* On premise, hybrid, public cloud
+
+
+// ************** Recap ********
+[#recap3]
+== Recap Docker
+
+* Containers run on *single* Docker host
+* Containers are *ephemeral*
+* Nothing watchdogs the containers
+* Containers can have external persistence
+* Containers do not contain
+* Operating system *matters*
+
+// ************** Recap ********
+[#recap3]
+== Why you win with Docker-based solutions
+
+* Immutable infrastructure
+* DevOps
+* CI/CD
+* *Who cares:* give me a platform to move faster!!!
+
+
+// ************** transition page **************************************************************************************
 [#transition2, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
@@ -76,25 +114,399 @@ image::{revealjs_cover_image}[]
 image::{revealjs_cover_image}[]
 
 [#cover-h1,left="0px",top="350px",width="2000px"]
-*Transition 2*
+*Local environment setup*
 
-// ************** devops ***********
+
+// ************** Environment setup ***********
+[#prep]
+== Set up kubernetes
+
+* Lab prerequisites in place!
+* Verify you have Oracle VirtualBox 4.3.x
+* Install Kubernetes link:http://kubernetes.io/v1.0/docs/getting-started-guides/vagrant.html[http://kubernetes.io/v1.0/docs/getting-started-guides/vagrant.html]
+* Windows: need to have HVT
+* Understand the architecture
+* Smoke test
+
+
+
+// ************** Environment setup ***********
+[#prep-output]
+== Final output
+
+    Waiting for each minion to be registered with cloud provider
+    Validating we can run kubectl commands.
+    NAME      READY     STATUS    RESTARTS   AGE
+    Connection to 127.0.0.1 closed.
+
+    Kubernetes cluster is running.  The master is running at:
+
+      https://10.245.1.2
+
+    The user name and password to use is located in ~/.kubernetes_vagrant_auth.
+
+    calling validate-cluster
+    Found 1 nodes.
+            NAME         LABELS                              STATUS
+         1  10.245.1.3   kubernetes.io/hostname=10.245.1.3   Ready
+    Validate output:
+    NAME                 STATUS    MESSAGE              ERROR
+    controller-manager   Healthy   ok                   nil
+    scheduler            Healthy   ok                   nil
+    etcd-0               Healthy   {"health": "true"}   nil
+    Cluster validation succeeded
+    Done, listing cluster services:
+
+    Kubernetes master is running at https://10.245.1.2
+    KubeDNS is running at https://10.245.1.2/api/v1/proxy/namespaces/kube-system/services/kube-dns
+    KubeUI is running at https://10.245.1.2/api/v1/proxy/namespaces/kube-system/services/kube-ui
+
+
+// ************** Environment setup ***********
+[#simpelarch]
+== Simple kubernetes architecture
+
+[#block,width="200px",top="150px",left="75px"]
+image:day2/kube-diagram.png[width="170%",height="170%"]
+
+// ************** Environment setup ***********
+[#fullarch]
+== Overall Kubernetes
+
+[#block,width="200px",top="75px",left="50px"]
+image:day2/kubernetes-platform.png[width="100%",height="100%"]
+
+
+
+// ************** transition page **************************************************************************************
+[#transition-kube, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
-[#block,width="800px",top="0px"]
-image:worked-fine-in-dev.png[width="80%"]
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
 
-// ************** transition page ************
-[#transition3, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+[#cover-h1,left="0px",top="250px",width="2000px"]
+*Kubernetes*
+
+
+[#containterizeit]
+== Containerize all the things!
+
+*Everything* at Google runs in containers!!
+
+* Gmail, search, maps
+* 2 billion containers *a week*
+* GCE? VMs in containers...
+
+[#block,width="200px",left="25px",top="300px"]
+image:day2/all-containers.jpg[]
+
+// ************** Kubernetes intro ***********
+[#whatisit1]
+== Kube what?
+
+* "helmsman of a ship"
+* Containers @ Google
+* Borg link:http://www.infoq.com/news/2015/04/google-borg[http://www.infoq.com/news/2015/04/google-borg]
+* Open source 6/2014
+* GKE...
+* Red Hat a top contributor
+* 100% written in *golang*
+* Do we need this?
+
+[#block,width="200px",left="200px",top="300px"]
+image:kubernetes.png[]
+
+
+
+
+// ************** Kubernetes intro ***********
+[#whatisit2]
+== What is Kubernetes
+
+* Different way to look at managing instances: scale
+* Design for failure
+* Efficient / Lean/ Simple
+* Portability
+* Extensible
+
+
+// ************** Kubernetes intro ***********
+[#whatisit3]
+== What is Kubernetes
+
+* How to place containers on a cluster
+* Smart placement
+* How to interact with a system that does placement
+* Different than configuration management
+** Immutable infrastructure principles
+* What to do when containers fail?
+* *Containers will fail*
+* Cluster security authZ/authN
+* Scaling
+* Grouping/Aggregates
+
+
+// ************** Kubernetes intro ***********
+[#whyisitimportant]
+== Why is it important
+
+* Managing containers by hand is harder that VMS: won't scale
+* Automate the boilerplate stuff
+* Runbooks -> Scripts -> Config management -> Scale
+* Decouple application from machine!
+* Applications run on "resources"
+* Kubernetes manages this interaction of applications and resources
+* *Manage applications, not machines!*
+* What about *legacy apps?*
+
+
+// ************** Kubernetes intro ***********
+[#coreconcets]
+== Kubernetes core concepts
+
+* Simplicity, Simplicity, Simplicity
+* *Pods*
+* *Labels* / *Selectors*
+* *Replication Controllers*
+* *Services*
+* API -- link:http://kubernetes.io/third_party/swagger-ui/[http://kubernetes.io/third_party/swagger-ui/]
+
+[#block,width="200px",left="250px",top="400px"]
+image:day2/kube-pods.png[]
+
+
+
+// ************** Kubernetes intro ***********
+[#controlplane]
+== Reconciliation of end state
+
+[#block,width="200px",left="50px",top="170px"]
+image:day2/make-it-so.png[height="200%",width="200%"]
+
+
+
+
+// ************** Kubernetes intro ***********
+[#controlplane]
+== Kubernetes control plane
+
+* etcd
+* API Server
+* Scheduler
+* Controller manager
+
+[#block,width="200px",left="50px",top="300px"]
+image:day2/kube-control-plane.png[height="150%",width="150%"]
+
+
+// ************** Kubernetes intro ***********
+[#etcd]
+== etcd
+
+* Open source project started at CoreOS
+* Distributed database
+* CAP Theorem? == CP
+* Raft algorithm/protocol
+* watchable
+* etcd provides HA datastore
+
+
+[#block,width="200px",left="250px",top="250px"]
+image:day2/etcd.png[height="75%",width="75%"]
+
+
+// ************** Kubernetes intro ***********
+[#nodes]
+== Kubernetes nodes
+
+* Nodes are VMs / physical hosts
+* Nodes need connectivity between them
+* Ideally same network/data center/availability zone
+
+
+[#block,width="200px",left="50px",top="250px"]
+image:day2/node-connectivity.png[height="150%",width="150%"]
+
+
+// ************** Kubernetes intro ***********
+[#nodes1]
+== Kubernetes nodes
+
+* Kubelet
+* kube-proxy
+* Docker
+
+[#block,width="200px",left="50px",top="250px"]
+image:day2/kube-control-plane-nodes.png[height="150%",width="150%"]
+
+
+// ************** Kubernetes intro ***********
+[#cluster-addons]
+== Cluster add-ons
+
+* Monitoring
+* DNS
+* UI
+* Logging
+
+
+
+// ************** Kubernetes intro ***********
+[#quick-demo]
+== Quick Demo!
+
+[#block,width="200px",left="50px",top="50px"]
+image:day2/demo.jpg[height="100%",width="100%"]
+
+
+
+
+
+
+
+
+
+
+
+// ************** transition page **************************************************************************************
+[#deepdive, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
 [#block,width="200px",left="70px",top="0px"]
 image::{revealjs_cover_image}[]
 
 [#cover-h1,left="0px",top="350px",width="2000px"]
-*Transition 3*
+*Kubernetes Deep Dive*
 
-// *********************************
+
+
+// ************** Kubernetes deep dive ***********
+[#core-concepts]
+== Kubernetes core concepts
+
+* *Pods*
+* *Labels* / *Selectors*
+* *Replication Controllers*
+* *Services*
+
+
+// ************** Kubernetes deep dive ***********
+[#deep-pods]
+== Kubernetes Pods
+
+* A pod is one or more docker containers
+* Ensures collocation / shared fate
+* Docker containers share resources within the pod
+** Volumes
+** Network / IP
+** Port space
+** CPU / Mem allocations
+* Pod health probes
+** Readiness
+** Liveness
+
+
+// ************** Kubernetes deep dive ***********
+[#deep-pods-image]
+== Kubernetes Pods
+
+[#block,width="400px",left="50px",top="100px"]
+image:day2/deep-pod.png[height="175%",width="175%"]
+
+
+// ************** Kubernetes deep dive ***********
+[#pod-creation]
+== Kubernetes Pods
+
+[#block,width="400px",left="50px",top="100px"]
+image:day2/pod-creation.png[height="175%",width="175%"]
+
+// ************** Kubernetes deep dive ***********
+[#deep-pods-probes]
+== Pod probes
+
+* Out of the box
+** Readiness
+** Liveness
+* Probe types
+** ExecAction
+** TCPSocketAction
+** HTTPGetAction
+* Results
+** Success
+** Failure
+** Unknown
+
+
+// ************** Kubernetes deep dive ***********
+[#deep-pods-restart-policy]
+== Pod restart policies
+
+* RestartPolicy
+** Always (default)
+** OnFailure
+** Never
+* Applies to all containers in the pod
+* For replication controllers, only _Always_ applicable
+
+// ************** Kubernetes deep dive ***********
+[#deep-pods-restart-policy2]
+== Pod restart policies
+
+Some Examples:
+
+* Pod is Running, 1 container, container exits success
+** Always: restart container, pod stays Running
+** OnFailure: pod becomes Succeeded
+** Never: pod becomes Succeeded
+* Pod is Running, 1 container, container exits failure
+** Always: restart container, pod stays Running
+** OnFailure: restart container, pod stays Running
+** Never: pod becomes Failed
+* Pod is Running, 2 containers, container 1 exits failure
+** Always: restart container, pod stays Running
+** OnFailure: restart container, pod stays Running
+** Never: pod stays Running
+
+When container 2 exits...
+
+** Always: restart container, pod stays Running
+** OnFailure: restart container, pod stays Running
+** Never: pod becomes Failed
+
+// ************** Kubernetes deep dive ***********
+[#deep-pods-termination]
+== Termination messages
+
+* Help debug problems by putting messages into "termination log"
+* default location `/dev/termination-log`
+* Quick demo?
+
+
+// ************** Kubernetes deep dive ***********
+[#first-pod]
+== Your first pod
+
+Use the `./cluster/kubectl.sh` (or the platform-native `kubectl`), run the following from the command line:
+
+
+
+
+
+// ************** Kubernetes deep dive ***********
+[#deep-pods-restart-policy2]
+== Pods in production
+
+* Use PersistentVolumes for stateful pods/containers
+* Use Kubernetes *secrets* to distribute credentials
+* Leverage readiness and liveness probes
+* Consider resources (CPU/Mem) limites/quotas
+* Use termination messages
+** /dev/termination-log
+** Quick Demo?
+
+// ************** transition page **************************************************************************************
 [#questions]
 == Questions
 
@@ -105,9 +517,8 @@ image::{revealjs_cover_image}[]
 a|* Twitter : *{speaker-twitter}*
 |===
 
-* More info {icon-arrow-right}
-  - www.jboss.org/products/fuse.html
-  - http://www.redhat.com/en/technologies/jboss-middleware
+
+
 
 
 

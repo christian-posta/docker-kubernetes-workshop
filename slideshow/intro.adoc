@@ -47,7 +47,7 @@ Email: {speaker-email} |
 [#agenda]
 == Agenda
 
-* Intro / Prep Environments
+* *Intro / Prep Environments*
 * Day 1: Docker Deep Dive
 * Day 2: Kubernetes Deep Dive
 * Day 3: Advanced Kubernetes: Concepts, Management, Middleware
@@ -144,7 +144,21 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 [#block,width="800px",top="50px"]
 image:day1/docker-animated-1.gif[]
 
-// ************** transition page ************
+
+// ************** so special ********
+[#sospecial]
+== Installing Kubernetes...
+
+We will be installing kubernetes 1.0.6 later in the hands-on sections. To do that we'll need *vagrant*, so lets install
+that right now.
+
+* http://www.vagrantup.com/downloads.html
+
+Make sure you have Virtual Box 4.3.x installed: BTW, docker machine will install 5.x Virtual Box; this will not be
+sufficent. Go ahead and link:https://www.virtualbox.org/wiki/Download_Old_Builds_4_3[install the 4.3.x version of
+Virtual Box]
+
+// ************** transition page **************************************************************************************
 [#transition2, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
