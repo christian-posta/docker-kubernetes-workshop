@@ -992,14 +992,14 @@ image::{revealjs_cover_image}[]
 [#cover-h1,left="0px",top="250px",width="2000px"]
 *Scaling and ensuring cluster invariants*
 
-// ************** Kubernetes intro ***********
+// ************** Scaling pods ***********
 [#repl-makeitso]
 == Replication controllers
 
 [#block,width="200px",left="50px",top="170px"]
 image:day2/make-it-so.png[height="200%",width="200%"]
 
-// ************** Kubernetes intro ***********
+// ************** Scaling pods ***********
 [#replcontrollers-intro]
 == Replication controllers
 
@@ -1010,7 +1010,7 @@ image:day2/make-it-so.png[height="200%",width="200%"]
 * Labels and selectors are the backbone of grouping
 
 
-// ************** Kubernetes intro ***********
+// ************** Scaling pods ***********
 [#replcontrollers-intro]
 == Replication controllers
 
@@ -1019,7 +1019,7 @@ image:day2/make-it-so.png[height="200%",width="200%"]
 * Can have multiple RCs so no SPOF
 * If a pod is unhealth (health prob), RC can kill and restart
 
-// ************** Kubernetes intro ***********
+// ************** Scaling pods ***********
 [#replcontrollers-eg]
 == Example Replication controller
 
@@ -1055,15 +1055,71 @@ status:
   replicas: 1
 ```
 
-// ************** Kubernetes intro ***********
+// ************** Scaling pods ***********
 [#replcontrollers-eg-locally]
 == Example Replication controller
 
 On your cluster, run the following command:
 
 ```
-curl -s -L | kubectl create -f -
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/replication-controllers/inspector-rc.yaml | kubectl create -f -
 ```
+
+Then do:
+
+```
+kubectl get rc
+```
+
+You should see:
+
+    CONTROLLER   CONTAINER(S)   IMAGE(S)                        SELECTOR                     REPLICAS
+    inspector    inspector      b.gcr.io/kuar/inspector:1.0.0   app=inspector,track=stable   1
+
+
+// ************** Scaling pods ***********
+[#replcontrollers-eg-scale]
+== Example scale up
+
+We want to change the value of the `*replicas*` for our `inspector` replication controller to scale up:
+
+```
+kubectl scale rc inspector --replicas=5
+```
+
+If successful, you should see:
+
+    scaled
+
+Now do a "get pods" to see
+
+```
+kubectl get pod
+```
+
+    NAME              READY     STATUS    RESTARTS   AGE
+    inspector-3sh6q   1/1       Running   0          13m
+    inspector-5djgp   1/1       Running   0          13m
+    inspector-9b68m   1/1       Running   0          13m
+    inspector-ohaod   1/1       Running   0          13m
+    inspector-r5bqo   1/1       Running   0          19m
+
+// ************** Scaling pods ***********
+[#replcontrollers-eg-scale-down]
+== Example scale down
+
+Let's scale the inspector app down to two pods:
+
+```
+kubectl scale rc inspector --replicas=2
+```
+
+Now when you get the pods, there should just be two. Kubernetes decides which ones to kill:
+
+    NAME              READY     STATUS    RESTARTS   AGE
+    inspector-ohaod   1/1       Running   0          15m
+    inspector-r5bqo   1/1       Running   0          20m
+
 
 // ************** transition page **************************************************************************************
 [#questions]
