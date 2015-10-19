@@ -488,14 +488,307 @@ When container 2 exits...
 [#first-pod]
 == Your first pod
 
-Use the `./cluster/kubectl.sh` (or the platform-native `kubectl`), run the following from the command line:
+Let's take a look at the Kubernetes resource file that we will use and evolve for the purposes of this first
+hands-on experience:
 
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: influxdb
+  name: influxdb
+spec:
+  containers:
+    - image: docker.io/tutum/influxdb:latest
+      name: influxdb
+      ports:
+        - containerPort: 8083
+          name: admin
+          protocol: TCP
+        - containerPort: 8086
+          name: http
+          protocol: TCP
+```
+
+
+
+// ************** Kubernetes deep dive ***********
+[#deploy-first-pod]
+== Deploy the influxdb pod
+
+You can either copy/paste that locally, or download the pod resource file like this:
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/hands-on-pods/influxdb-simple.yaml -O influxdb-simple.yaml
+```
+
+Once you have the file locally downloaded, run the kubectl command (`./cluster/kubectl.sh`) like this:
+
+```
+kubectl create -f influxdb-simple.yaml
+```
+
+Wait for the Docker image to download and the pod to start. Can watch it like this:
+
+```
+kubectl get pod --watch
+```
+
+Can watch the docker events in another window like this (to keep track of what's happening on the docker side) -- note, you'll need to be logged into `minion-1` directly to see the docker events:
+
+```
+docker events
+```
+
+// ************** Kubernetes deep dive ***********
+[#inspect-first-pod]
+== Interact with your first Kubernetes pod
+
+Now that we have our first pod up, let's see where it's deployed:
+
+```
+kubectl describe pod/influxdb
+```
+
+Note where it's deployed (Node field).
+
+    ceposta@postamac(kubernetes (master)) $ kubectl describe pod/influxdb
+    Name:                           influxdb
+    Namespace:                      demo-pods
+    Image(s):                       docker.io/tutum/influxdb:latest
+    Node:                           10.245.1.3/10.245.1.3
+    Labels:                         name=influxdb
+    Status:                         Running
+    Reason:
+    Message:
+    IP:                             10.246.1.7
+    Replication Controllers:        <none>
+    Containers:
+      influxdb:
+        Image:              docker.io/tutum/influxdb:latest
+        State:              Running
+          Started:          Sun, 18 Oct 2015 17:09:16 -0700
+        Ready:              True
+        Restart Count:      0
+    Conditions:
+      Type          Status
+      Ready         True
+    Events:
+    <truncated>
+
+
+// ************** Kubernetes deep dive ***********
+[#query-our-first-pod]
+== Interact with your first Kubernetes pod
+
+Let's login to our minion-1 machine and interact with the pod. We found out which machine the pod was running on in the last slide.
+
+```
+vagrant ssh minion-1
+```
+
+Let's try ping the pod to see if we can reach it from the minion (we could have also logged into the `master` and run the same commands; the assumption kubernetes makes is a flat network reachable from anywhere in the cluster. More on the kubrentes network model in Day 3).
+
+```
+ping 10.246.1.7
+```
+
+Note, you should use the IP address of the pod from the above `kubectl describe` command.
+
+
+    [vagrant@kubernetes-master ~]$ ping 10.246.1.7
+    PING 10.246.1.7 (10.246.1.7) 56(84) bytes of data.
+    64 bytes from 10.246.1.7: icmp_seq=1 ttl=63 time=2.43 ms
+    64 bytes from 10.246.1.7: icmp_seq=2 ttl=63 time=8.41 ms
+    64 bytes from 10.246.1.7: icmp_seq=3 ttl=63 time=1.27 ms
+    64 bytes from 10.246.1.7: icmp_seq=4 ttl=63 time=2.23 ms
+    ^C
+    --- 10.246.1.7 ping statistics ---
+    4 packets transmitted, 4 received, 0% packet loss, time 3004ms
+    rtt min/avg/max/mdev = 1.271/3.587/8.411/2.819 ms
+
+
+// ************** Kubernetes deep dive ***********
+[#query-our-first-pod2]
+== Interact with your first Kubernetes pod
+
+Now, let's issue a command to that IP address. Note, these commands must be run from either `master` or `minion-1`
+
+```
+export INFLUX_NODE=10.246.1.7
+curl -G "http://$INFLUX_NODE:8086/query" --data-urlencode "q=CREATE DATABASE kubernetes"
+curl -X POST "http://$INFLUX_NODE:8086/write?db=kubernetes" -d 'pod,host=node0 count=10'
+curl -G "http://$INFLUX_NODE:8086/query?pretty=true" --data-urlencode "db=kubernetes" --data-urlencode "q=SELECT SUM(count) FROM pod"
+```
+
+We add a new database to the influxdb index, then we add some data, and finally we query it. You should see '10' as the result.
+
+
+// ************** Kubernetes deep dive ***********
+[#is-pod-healthy]
+== Adding readiness and liveness checks
+
+At this point, we've deployed our first application on Kubernetes, but it doesn't do too much. Earlier we discussed the different probe options we have for determining whether a pod is healthy or ready for action. Let's add some of that to our pod. The pod YAML resource looks like this:
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: influxdb
+  name: influxdb
+spec:
+  containers:
+    - image: docker.io/tutum/influxdb:latest
+      name: influxdb
+      readinessProbe:
+        httpGet:
+          path: /ping
+          port: 8086
+        initialDelaySeconds: 5
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: /ping
+          port: 8086
+        initialDelaySeconds: 15
+        timeoutSeconds: 1
+      ports:
+        - containerPort: 8083
+          name: admin
+          protocol: TCP
+        - containerPort: 8086
+          name: http
+          protocol: TCP
+```
+
+// ************** Kubernetes deep dive ***********
+[#is-pod-healthy2]
+== Adding readiness and liveness checks
+
+First, let's stop and remove our previous `influxdb` pod since we'll be re-doing it this time with health-checking:
+
+```
+kubectl stop pod/influxdb
+```
+
+Curl the pod resource as we did before.
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/hands-on-pods/influxdb-readiness.yaml -O influxdb-rediness.yaml
+```
+
+Use the `kubectl` command line again to create our pod:
+
+```
+kubectl create -f influxdb-readiness.yaml
+```
+
+// ************** Kubernetes deep dive ***********
+[#is-pod-healthy3]
+== Adding readiness and liveness checks
+
+Now that we've deployed our liveness and readiness checks, our Pod is not automatically monitored by kubernetes. If there is ever an issue with it, Kubernetes will kill the pod and depending on its *restartPolicy* will take action.
+
+
+// ************** Kubernetes deep dive ***********
+[#pod-resources]
+== Adding resource constraints to our pods
+
+We have readiness and liveness checks, but we may also want to constrain what the `influxdb` pod(s) do in terms of isolation and CPU/Memory usage. We don't want a single pod taking over all of the underlying resources and starving other processes.
+
+Let's alter our pod yaml resource descriptor to add in resource constraints:
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: influxdb
+  name: influxdb
+spec:
+  containers:
+    - image: docker.io/tutum/influxdb:latest
+      name: influxdb
+      resources:
+        limits:
+          cpu: "500m"
+          memory: "128Mi"
+      readinessProbe:
+        httpGet:
+          path: /ping
+          port: 8086
+        initialDelaySeconds: 5
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: /ping
+          port: 8086
+        initialDelaySeconds: 15
+        timeoutSeconds: 1
+      ports:
+        - containerPort: 8083
+          name: admin
+          protocol: TCP
+        - containerPort: 8086
+          name: http
+          protocol: TCP
+```
+
+// ************** Kubernetes deep dive ***********
+[#pod-resources]
+== Adding resource constraints to our pods
+
+Let's stop our previous pod, download the new manifest and run it:
+
+```
+kubectl stop pod/influxdb
+```
+
+Curl the pod resource as we did before.
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/hands-on-pods/influxdb-resource-limits.yaml -O influxdb-resource-limits.yaml
+```
+
+
+Use the `kubectl` command line again to create our pod:
+
+```
+kubectl create -f influxdb-resource-limits.yaml
+```
+
+Now our pod is allocated specific limits so we can sleep at night knowing we have resource isolation.
+
+// ************** Kubernetes deep dive ***********
+[#pods-volumes]
+== Stateful containers
+
+Whenever we add new databases to our `influxdb` and then stop the pod, we find that the data in the `influxdb` is not persisted. Let's add a way to persist that information.
+
+
+Kubernetes offers a few persistence mechanisms out of the box:
+
+* emtpyDir
+* hostpath
+* gcePersistentDisk
+* awsElasticBlockStorage
+* nfs
+* glusterfs
+* gitRepo
+
+// ************** Kubernetes deep dive ***********
+[#pods-volumes-hostpath]
+== Stateful containers
+
+In tomorrow's demo, we'll show how to use a shared-storage mechanism in Google Compute Engine to create stateful pods. But for now, we'll just map to a location on the Node/host. Note this has implications about pod rescheduling etc that will discussed in the class:
 
 
 
 
 // ************** Kubernetes deep dive ***********
-[#deep-pods-restart-policy2]
+[#pods-in-production]
 == Pods in production
 
 * Use PersistentVolumes for stateful pods/containers
