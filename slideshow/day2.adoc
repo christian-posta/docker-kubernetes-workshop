@@ -1355,7 +1355,64 @@ Assuming you still have the replication controller from the previous section, le
 exposes the `inspector` app (https://github.com/kelseyhightower/inspector/) directly on the Nodes.
 
 
-``` 
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/services/inspector-svc.yaml | kubectl create -f -
+```
+
+This service exposes to a NodePort on the Node. To see which port exactly it is exposed:
+
+```
+kubectl get svc/inspector -o template -t "{{.spec.ports}}"
+```
+
+Then you can query the Node (by IP if using vagrant) and the port. If you do this from outside the VMs, make sure to map
+your VM port to your host.
+
+
+// ************** Services ***********
+[#example-inspector-service]
+== Example output from inspector service
+
+    [vagrant@kubernetes-master ~]$ curl -G http://10.245.1.3:30727/
+
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+      </head>
+      <div class="container">
+        <body>
+          <h1>Inspector</h1>
+          <p>
+           <b>Home</b> |
+           <a href="./env">Environment</a> |
+           <a href="./mnt">Mounts</a> |
+           <a href="./net">Network</a>
+          </p>
+          <hr/>
+          <p>Version: Inspector 1.0.0</p>
+          </ul>
+        </body>
+      </div>
+    </html>
+
+Try running the curl command pointing to the /net path. For each call we can inspect what network information gets
+returned. And if you have more than 1 replica, you should see that network information change as we access different
+pods behind the service (load balanced):
+
+    [vagrant@kubernetes-master ~]$ curl -G http://10.245.1.3:30727/net
+        <snipped>
+            <tr>
+              <td>eth0</td>
+              <td>02:42:0a:f6:01:0e</td>
+              <td><ul class="list-unstyled">
+                    <li>10.246.1.14/24</li>
+                    <li>fe80::42:aff:fef6:10e/64</li>
+                  </ul>
+              </td>
+            </tr>
+        </snipped>
+
 
 // ************** transition page **************************************************************************************
 [#questions]
