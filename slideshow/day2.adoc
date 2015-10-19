@@ -1396,6 +1396,10 @@ your VM port to your host.
       </div>
     </html>
 
+// ************** Services ***********
+[#example-inspector-service2]
+== Example output from inspector service
+
 Try running the curl command pointing to the /net path. For each call we can inspect what network information gets
 returned. And if you have more than 1 replica, you should see that network information change as we access different
 pods behind the service (load balanced):
