@@ -757,6 +757,60 @@ image:day3/influx.png[width="100%",height="100%"]
 image:day3/promo.png[width="100%",height="100%"]
 
 
+
+
+
+
+
+
+
+// ************** transition page **************************************************************************************
+[#cluster-ha, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Cluster High Availability*
+
+
+
+// ************** AddOns ********
+[#high-availability-architecture]
+== High Availability
+
+[#block,width="200px",top="50px",left="0px"]
+image:day3/ha.png[width="100%",height="100%"]
+
+// ************** AddOns ********
+[#high-availability-components]
+== High Availability components
+
+* HA master nodes
+* etcd datastore
+* Replicated, load-balanced, API server
+* Elected scheduler and controllers
+
+// ************** AddOns ********
+[#high-availability-components2]
+== High Availability components
+
+* Run kubelet on the masters to monitor that API server process and restart on failure
+** systemctl enable kubelet and systemctl enable docker.
+* Replicated etcd
+* Run shared storage locations for each of the etcd nodes
+* Network loadbalancers over the API servers
+* Run `podmaster` which coordinates a lease-lock election using etcd
+
+
+
+
+
+
+
+
+
 // *********************************************************************************************************************
 [#questions]
 == Questions
