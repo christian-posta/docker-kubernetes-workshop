@@ -26,5 +26,5 @@ The slides will walk you through setting up Docker and Kubernetes, etc
 Huge shout out to the work [Kelsey Hightower](https://github.com/kelseyhightower/) does in the kubernetes community, and providing his [intro to kubernetes](https://github.com/kelseyhightower/intro-to-kubernetes-workshop) workshop on github.com I've used some of the `inspector` app RC and service definitions to illustrate the respective concepts.
  
 For my slides, I used a lot of the [kubernetes.io documentation]() and some inspiration from Googler [
-Satnam Singh's presentation tiled "Cluster management with Kubernetes"](http://www.slideshare.net/SatnamSingh67/2015-0605-cluster-management-with-kubernetes) 
+Satnam Singh's presentation tiled "Cluster management with Kubernetes"](http://www.slideshare.net/SatnamSingh67/2015-0605-cluster-management-with-kubernetes) and blog post [http://blog.raintown.org/2014/11/logging-kubernetes-pods-using-fluentd.html](http://blog.raintown.org/2014/11/logging-kubernetes-pods-using-fluentd.html)
 

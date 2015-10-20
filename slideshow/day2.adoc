@@ -123,6 +123,8 @@ image::{revealjs_cover_image}[]
 
 * Lab prerequisites in place!
 * Verify you have Oracle VirtualBox 4.3.x
+* Set environment variable *`KUBE_LOGGING_DESTINATION=elasticsearch`*
+** optional; installs fluentd/elasticsearch pods
 * Install Kubernetes link:http://kubernetes.io/v1.0/docs/getting-started-guides/vagrant.html[http://kubernetes.io/v1.0/docs/getting-started-guides/vagrant.html]
 * Windows: need to have HVT
 * Understand the architecture

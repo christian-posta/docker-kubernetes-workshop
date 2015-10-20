@@ -71,25 +71,7 @@ image::{revealjs_cover_image}[]
 [#cover-h1,width="600px",left="0px",top="400px"]
 *Quick Recap*
 
-// ************** Recap ********
-[#recap-docker]
-== Recap Docker
 
-* *Linux* containers
-* Docker API
-* Images
-* Containers
-* Registry
-
-// ************** Recap ********
-[#why-docker-matters]
-== Why  Docker matters
-
-* Application distribution
-* Dependency management
-* Application density
-* Reduced management overhead in terms of VMs
-* On premise, hybrid, public cloud
 
 // ************** Recap ********
 [#recap2]
@@ -653,6 +635,126 @@ image::{revealjs_cover_image}[]
 *Live Demo*
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ************** transition page **************************************************************************************
+[#cluster-addons, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Cluster AddOns*
+
+
+// ************** AddOns ********
+[#dns]
+== Cluster DNS
+
+* AddOns implemented as Services and Repliction Controllers
+* Sky DNS used to implement DNS-addon
+* A pod that bridges between kubernetes services and DNS
+
+
+[#block,width="200px",top="250px",left="75px"]
+image:day3/sky-dns-pod.png[width="100%",height="100%"]
+
+
+// ************** AddOns ********
+[#dns-lookup]
+== Cluster DNS
+
+* A kubernetes service that is the DNS provider (ie, has an vIP, etc)
+* Kublet configured to decorate the pods with correct DNS server
+** Can configure the kubelet manually if not automatically set up:
+
+```
+--cluster_dns=<DNS service ip>
+--cluster_domain=<default local domain>
+```
+
+* A records are created for services in the form `svc-name.ns-name.svc.cluster.local`
+* Headless service (no clusterIP) are DNS round-robin
+* SRV records (discovering services and ports)  `_my-port-name._my-port-protocol.my-svc.my-namespace.svc.cluster.local`
+** resolves to the hostname `my-svc.my-namespace.svc.cluster.local` and the port
+
+
+// ************** AddOns ********
+[#cluster-logging]
+== Cluster logging with Elasticsearch and fluentd
+
+* Log collector on each node
+* Implemented with fluentd, as a pod
+* Watches all containers' logs on that node and pump them to Elastic search cluster
+* Elasticsearch can be queried via Kibana
+
+
+// ************** AddOns ********
+[#cluster-logging-es-fluentd]
+== Elasticsearch and fluentd
+
+[#block,width="200px",top="50px",left="25px"]
+image:day3/fluentd-es-overview.png[width="75%",height="75%"]
+
+
+// ************** AddOns ********
+[#cluster-logging-es-fluentd]
+== Elasticsearch and fluentd Demo
+
+Quick Demo?
+
+// ************** AddOns ********
+[#container-monitoring]
+== Container level monitoring
+
+* Need visibility into the cluster as an aggregate and individually where appropriate
+* cAdvisor
+* Heapster
+* Influxdb/Prometheus/Graphite
+** link:http://prometheus.io/docs/introduction/comparison/[Comparison -- http://prometheus.io/docs/introduction/comparison/]
+* Grafana
+
+// ************** AddOns ********
+[#container-monitoring2]
+== Container level monitoring
+
+[#block,width="200px",top="150px",left="25px"]
+image:day3/monitoring-architecture.png[width="140%",height="140%"]
+
+// ************** AddOns ********
+[#container-monitoring-cadvisor]
+== cAdvisor UI
+
+[#block,width="200px",top="50px",left="25px"]
+image:day3/cadvisor.png[width="140%",height="140%"]
+
+
+// ************** AddOns ********
+[#container-monitoring-influxdb]
+== Influxdb
+
+[#block,width="200px",top="75px",left="0px"]
+image:day3/influx.png[width="100%",height="100%"]
+
+
+// ************** AddOns ********
+[#container-monitoring-promo]
+== Prometheus
+
+[#block,width="200px",top="75px",left="0px"]
+image:day3/promo.png[width="100%",height="100%"]
 
 
 // *********************************************************************************************************************
