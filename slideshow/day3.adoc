@@ -7,7 +7,7 @@
 :speaker-twitter: http://twitter.com/christianposta[@christianposta]
 :talk-speaker: {speaker}
 :talk-name: Intro: Docker and Kubernetes training - Day 3
-:talk-date: 10/19/2015
+:talk-date: 10/21/2015
 
 [#cover,data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
@@ -54,7 +54,7 @@ Email: {speaker-email} |
 * Day 4: Advanced Kubernetes: CI/CD, open discussions
 
 
-// ************** transition page ************
+// ************** transition page **************************************************************************************
 [#transition1, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
@@ -62,37 +62,186 @@ Email: {speaker-email} |
 image::{revealjs_cover_image}[]
 
 [#cover-h1,width="600px",left="0px",top="400px"]
-*Setting up Docker locally*
+*Quick Recap*
 
-// ************** slide1 ********
-[#slide1]
-== Slide1
+// ************** Recap ********
+[#recap1]
+== Recap Docker
 
-// ************** transition page ************
-[#transition2, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+* *Linux* containers
+* Docker API
+* Images
+* Containers
+* Registry
+
+// ************** Recap ********
+[#recap2]
+== Why  Docker matters
+
+* Application distribution
+* Dependency management
+* Application density
+* Reduced management overhead in terms of VMs
+* On premise, hybrid, public cloud
+
+// ************** Recap ********
+[#recap3]
+== Recap Docker
+
+* Containers run on *single* Docker host
+* Containers are *ephemeral*
+* Nothing watchdogs the containers
+* Containers can have external persistence
+* Containers do not contain
+* Operating system *matters*
+
+
+// ************** Kubernetes intro ***********
+[#whatisit3]
+== What is Kubernetes
+
+* Smart placement
+* How to interact with a system that does placement
+* Different than configuration management
+* *Containers will fail*
+* Scaling
+
+
+// ************** Recap ***********
+[#whyisitimportant]
+== Why is it important
+
+* Managing containers by hand is harder that VMS: won't scale
+* Automate the boilerplate stuff
+* Runbooks -> Scripts -> Config management -> Scale
+* Decouple application from machine!
+* Applications run on "resources"
+* Kubernetes manages this interaction of applications and resources
+* *Manage applications, not machines!*
+* What about *legacy apps?*
+
+// ************** Recap ***********
+[#coreconcets]
+== Kubernetes core concepts
+
+* Simplicity, Simplicity, Simplicity
+* *Pods*
+* *Labels* / *Selectors*
+* *Replication Controllers*
+* *Services*
+* API
+
+
+// ************** Recap ********
+[#recap3]
+== Why you win with Docker and Kubernetes
+
+* Immutable infrastructure
+* DevOps
+* CI/CD
+* *Who cares:* give me a platform to move faster!!!
+
+// ************** transition page **************************************************************************************
+[#deepdive, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
 [#block,width="200px",left="70px",top="0px"]
 image::{revealjs_cover_image}[]
 
 [#cover-h1,left="0px",top="350px",width="2000px"]
-*Transition 2*
+*Kubernetes: Deeper Dive*
 
-// ************** devops ***********
-== {blank-space}
+// ************** Deeper ********
+[#namespaces]
+== Kubernetes namespaces
 
-[#block,width="800px",top="0px"]
-image:worked-fine-in-dev.png[width="80%"]
+* Divide cluster across uses, tiers, and teams
+* Unique within a namespace; not across multiple namespaces
+* Very powerful when combined with Labels
+* Example: qa/dev/prod can be implemented with Namespaces
 
-// ************** transition page ************
-[#transition3, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
-== {blank-space}
 
-[#block,width="200px",left="70px",top="0px"]
-image::{revealjs_cover_image}[]
+// ************** Deeper ********
+[#namespaces1]
+== Kubernetes namespaces
 
-[#cover-h1,left="0px",top="350px",width="2000px"]
-*Transition 3*
+List the namespaces available to the cluster
+
+```
+kubectl get namespaces
+```
+
+List all the pods across all the namespaces
+
+```
+kubectl get pods --all-namespaces
+```
+
+Let's create a new namespace for our `guestbook` application:
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/guestbook/namespace.yaml | kubectl create -f -
+```
+
+// ************** Deeper ********
+[#namespaces-contexts]
+== Kubernetes Contexts / Namespaces
+
+You can log into multiple kubernetes clusters with the same client and switch between clusters/contexts at the
+command line. You can also specify which namespaces to use when pointing to specific clusters. For example, to
+view the current cluster context:
+
+
+```
+kubectl config view
+```
+Sample output:
+
+  - context:
+      cluster: master-fuse-osecloud-com:8443
+      namespace: microservice
+      user: admin/master-fuse-osecloud-com:8443
+    name: microservice/master-fuse-osecloud-com:8443/admin
+  - context:
+      cluster: vagrant
+      user: vagrant
+    name: vagrant
+  current-context: vagrant
+  kind: Config
+  preferences: {}
+  users:
+  - name: admin/master-fuse-osecloud-com:8443
+    user:
+      token: kZ_L5Oj5sJ8nJUVJD4quq813Q1pRv4yZWhOjuJEw79w
+  - name: vagrant
+    user:
+      client-certificate-data: REDACTED
+      client-key-data: REDACTED
+      password: vagrant
+      username: vagrant
+
+
+// ************** Deeper ********
+[#namespaces-using-contexts]
+== Setting and using context/namespaces
+
+We can create a new context that points to our vagrant cluster:
+
+```
+kubectl config set-context guestbook --namespace=guestbook --user=vagrant --cluster=vagrant
+```
+
+Now, let's switch to use that context so we can put any new pods/RCs into this new namespace:
+
+```
+kubectl config  use-context guestbook
+```
+
+Now double check we're in the new context/namespace:
+
+```
+kubectl config view
+```
 
 // *********************************
 [#questions]
@@ -104,11 +253,3 @@ image::{revealjs_cover_image}[]
 .2+|image:questions.png[width="95%",height="95%"]
 a|* Twitter : *{speaker-twitter}*
 |===
-
-* More info {icon-arrow-right}
-  - www.jboss.org/products/fuse.html
-  - http://www.redhat.com/en/technologies/jboss-middleware
-
-
-
-

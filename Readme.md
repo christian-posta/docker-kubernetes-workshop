@@ -16,6 +16,8 @@ This workshop requires you to bring your own laptop and have the following prere
 * VirtualBox -- [download here](https://www.virtualbox.org/wiki/Download_Old_Builds_4_3)
 * Vagrant -- [download here](http://www.vagrantup.com/downloads.html)
 
+Github.com access
+
 The slides will walk you through setting up Docker and Kubernetes, etc
 
 

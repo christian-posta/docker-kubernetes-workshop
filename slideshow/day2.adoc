@@ -7,7 +7,7 @@
 :speaker-twitter: http://twitter.com/christianposta[@christianposta]
 :talk-speaker: {speaker}
 :talk-name: Intro: Docker and Kubernetes training - Day 2
-:talk-date: 10/19/2015
+:talk-date: 10/20/2015
 
 [#cover,data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
@@ -54,7 +54,7 @@ Email: {speaker-email} |
 * Day 4: Advanced Kubernetes: CI/CD, open discussions
 
 
-// ************** transition page ************
+// ************** transition page **************************************************************************************
 [#transition1, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
 
@@ -1418,10 +1418,10 @@ pods behind the service (load balanced):
         </snipped>
 
 
-// ************** transition page **************************************************************************************
+
+// *********************************
 [#questions]
 == Questions
-
 
 [.noredheader,cols="65,.<45"]
 |===
@@ -1429,10 +1429,3 @@ pods behind the service (load balanced):
 .2+|image:questions.png[width="95%",height="95%"]
 a|* Twitter : *{speaker-twitter}*
 |===
-
-
-
-
-
-
-
