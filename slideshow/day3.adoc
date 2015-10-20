@@ -531,7 +531,7 @@ image::{revealjs_cover_image}[]
 
 
 * local, host-only bridge (docker0)
-*c reate new adapters to the bridge (veth) for each container that’s created
+* create new adapters to the bridge (veth) for each container that’s created
 * veth is mapped to eth0 on a container
 * eth0 is assigned an IP from the range dedicated to the virtual bridge
 * result: docker containers can talk to each other only on the same machine
@@ -792,6 +792,20 @@ image:day3/ha.png[width="100%",height="100%"]
 * Replicated, load-balanced, API server
 * Elected scheduler and controllers
 
+[#etcd]
+== etcd
+
+* Open source project started at CoreOS
+* Distributed database
+* CAP Theorem? == CP
+* Raft algorithm/protocol
+* watchable
+* etcd provides HA datastore
+
+
+[#block,width="200px",left="250px",top="250px"]
+image:day2/etcd.png[height="75%",width="75%"]
+
 // ************** AddOns ********
 [#high-availability-components2]
 == High Availability components
@@ -807,9 +821,165 @@ image:day3/ha.png[width="100%",height="100%"]
 
 
 
+// ************** transition page **************************************************************************************
+[#releasees, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Updating applications - Releasing updates*
+
+// ************** Releases ********
+[#release-types]
+== Release Types
+
+* Canary release
+* Blue/green deployment
+* A/B testing
+* Rolling upgrade/rollback
 
 
 
+// ************** Releases ********
+[#canary-release]
+== Canary Release
+
+[#block,width="200px",top="75px",left="0px"]
+image:day3/canarydeployment.png[width="200%",height="200%"]
+
+
+// ************** Releases ********
+[#canary-release-w-kube]
+== Canary Release with Kubernetes
+
+* https://github.com/kubernetes/kubernetes/issues/11505
+* Can do with labels (exclude certain labels)
+
+Example:
+
+App to deploy:
+
+  labels:
+          app: guestbook
+          tier: frontend
+          track: canary
+
+Existing set of apps:
+
+  labels:
+          app: guestbook
+          tier: frontend
+          track: stable
+
+Service selector
+
+  selector:
+       app: guestbook
+       tier: frontend
+
+
+
+// ************** Releases ********
+[#blue-green-green]
+== Blue/Green deployment
+
+[#block,width="200px",top="75px",left="0px"]
+image:day3/greendeployment.png[width="200%",height="200%"]
+
+
+// ************** Releases ********
+[#blue-green-blue]
+== Blue/Green deployment
+
+[#block,width="200px",top="75px",left="0px"]
+image:day3/bluedeployment.png[width="200%",height="200%"]
+
+// ************** Releases ********
+[#blue-green-green-w-kube]
+== Blue/Green deployment with Kubernetes
+
+* Have two separate replication controllers, one blue, one green
+* Have labels "color=green", "color=blue"
+* Service selector = "color=green"
+* Change selector to "color=blue" to switch
+* Can switch back
+
+// ************** Releases ********
+[#ab-testing]
+== A/B Testing
+
+[#block,width="200px",top="75px",left="0px"]
+image:day3/abtesting.png[width="110%",height="110%"]
+
+// ************** Releases ********
+[#rolling-upgrade]
+== Rolling update
+
+
+* Bring up a container with the new version, same fleet of containers
+* Bring down one of the old version
+* Bring up a second container with the new version
+* Repeat
+* To be aware: potentially scaling while doing Rolling Updates
+
+
+// ************** Releases ********
+[#rolling-upgrade-how-to-do]
+== Rolling update: how to
+
+* Use replication controllers to control the number of replicas at a given step
+* Use `kubectl rolling-update
+* Replaces an old RC with a new RC
+* Must be in same namespace
+* Share at least one label name, different value
+
+Example:
+
+```
+kubectl rolling-update frontend-v1 -f frontend-v2.json
+```
+
+// ************** Releases ********
+[#rolling-upgrade-how-to-do-recovery]
+== Rolling update: how to Recovery
+
+* What happens if a failure is introduced part-way through the Rolling update:
+* Kubernetes keeps track and annotates the RC with info:
+* *`kubernetes.io/desired-replicas`*
+** the number that this replica controller needs to get to
+* *`kubernetes.io/update-partner`*
+** Who's the other half of the replica-set
+* Recovery is achieved by running the same command again
+
+// ************** Releases ********
+[#rolling-upgrade-how-to-do-algo]
+== Rolling update: how to Recovery
+
+* While size of foo-next < desired-replicas annotation on foo-next
+** increase size of foo-next
+** if size of foo > 0 decrease size of foo
+* Goto Rename
+
+
+// ************** Releases ********
+[#rolling upgrade-how-to-do]
+== Rolling update: how to
+link:http://kubernetes.io/v1.0/docs/user-guide/update-demo/README.html[Demo]
+
+
+
+
+// ************** transition page **************************************************************************************
+[#mvn-plugins, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Automating generation of kubernetes resources for Java*
 
 // *********************************************************************************************************************
 [#questions]
