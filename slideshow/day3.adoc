@@ -969,8 +969,6 @@ kubectl rolling-update frontend-v1 -f frontend-v2.json
 link:http://kubernetes.io/v1.0/docs/user-guide/update-demo/README.html[Demo]
 
 
-
-
 // ************** transition page **************************************************************************************
 [#mvn-plugins, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
@@ -980,6 +978,305 @@ image::{revealjs_cover_image}[]
 
 [#cover-h1,left="0px",top="350px",width="2000px"]
 *Automating generation of kubernetes resources for Java*
+
+
+// ************** Fabric8 ********
+[#docker-mvn-plugin]
+== Docker maven plugin
+
+* Set of maven goals for managing docker builds and containers
+* Can be run as part of a CI/build step in your existing build or CI pipelines
+* Requires access to a Docker Daemon for builds
+* Can build images, start/stop containers, etc
+* https://github.com/rhuss/docker-maven-plugin
+
+// ************** Fabric8 ********
+[#docker-mvn-plugin2]
+== Docker maven plugin
+
+
+*  docker:start	Create and start containers
+*  docker:stop	Stop and destroy containers
+*  docker:build	Build images
+*  docker:watch	Watch for doing rebuilds and restarts
+*  docker:push	Push images to a registry
+*  docker:remove	Remove images from local docker host
+*  docker:logs	Show container logs
+
+
+// ************** Fabric8 ********
+[#docker-mvn-build]
+== Docker maven plugin: build
+
+* *`mvn package docker:build`*
+* Can build a docker image as part of `mvn lifecycle`
+* Package files from project (build artifacts, configs, etc) into docker image
+* Which files are selected using link:http://maven.apache.org/plugins/maven-assembly-plugin/[maven-assembly-plugin]
+* Selected files are inserted into base image at specified location
+* default `/maven`
+* See the link:http://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[assembly descriptor file format]
+* Once image is built, can use link:http://maven.apache.org/surefire/maven-failsafe-plugin/[maven-failsafe-plugin] to
+run integration tests
+
+// ************** Fabric8 ********
+[#docker-mvn-build2]
+== Docker maven plugin: build
+
+```
+<configuration>
+  <images>
+    <image>
+      <alias>service</alias>
+      <name>jolokia/docker-demo:${project.version}</name>
+
+      <build>
+         <from>java:8</from>
+         <assembly>
+           <descriptor>docker-assembly.xml</descriptor>
+         </assembly>
+         <ports>
+           <port>8080</port>
+         </ports>
+         <cmd>
+            <shell>java -jar /maven/service.jar</shell>
+         </cmd>
+      </build>
+
+      <run>
+         <ports>
+           <port>tomcat.port:8080</port>
+         </ports>
+         <wait>
+           <url>http://localhost:${tomcat.port}/access</url>
+           <time>10000</time>
+         </wait>
+         <links>
+           <link>database:db</link>
+         </links>
+       </run>
+    </image>
+
+    <image>
+      <alias>database</alias>
+      <name>postgres:9</name>
+      <run>
+        <wait>
+          <log>database system is ready to accept connections</log>
+          <time>20000</time>
+        </wait>
+      </run>
+    </image>
+  </images>
+</configuration>
+```
+
+// ************** Fabric8 ********
+[#docker-mvn-watch]
+== Docker maven plugin: watch
+
+* Can watch for changes in project and rebuild
+* Rebuild docker image
+* Re-start existing running container
+* Fast development feedback/loop
+* `mvn package docker:build docker:watch -Ddocker.watchMode=build`
+* `mvn docker:start docker:watch -Ddocker.watchMode=run`
+*
+
+
+// ************** Fabric8 ********
+[#docker-mvn-watch2]
+== Docker maven plugin: watch
+
+```
+<configuration>
+   <!-- Check every 10 seconds by default -->
+   <watchInterval>10000</watchInterval>
+   <!-- Watch for doing rebuilds and restarts -->
+   <watchMode>both</watch>
+   <images>
+      <image>
+         <!-- Service checks every 5 seconds -->
+         <alias>service</alias>
+         ....
+         <watch>
+            <interval>5000</interval>
+         </watch>
+      </image>
+      <image>
+         <!-- Database needs no watching -->
+         <alias>db<alias>
+         ....
+         <watch>
+            <mode>none</mode>
+         </watch>
+      </image>
+      ....
+   </images>
+</configuration>
+```
+
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin]
+== Fabric8 maven plugin
+
+* *`fabric8:json`*
+* *`fabric8:apply`*
+* *`fabric8:rolling`*
+* *`fabric8:devops`*
+* *`fabric8:create-routes`*
+* *`fabric8:recreate`*
+
+
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-json]
+== Fabric8 maven plugin: json
+
+* Generates `kubernetes.json` file based on Maven settings
+** Can generate ReplicationController/Services/Pods
+* Attaches `kubernetes.json` and versions as part of the build
+** Will be included in the artifacts uploaded to artifact repo
+
+Options
+
+* Hand-generate your own file and let mvn coordinates be applied
+* Use default mvn properties and let fabric8:json generate the json file
+* Use annnotation processors and typesafe DSL builders directly
+* Enrich the generated JSON with additional stuff
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-json-envs]
+== Fabric8 maven plugin: json
+
+```
+<project>
+...
+  <properties>
+    <fabric8.env.FOO>bar</fabric8.env.FOO>
+    ...
+  </properties>
+...
+</project>
+```
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-json-properties]
+== Fabric8 maven plugin: json
+
+
+* `docker.image`	Used by the docker-maven-plugin to define the output docker image name.
+* `fabric8.combineDependencies`	If enabled then the maven dependencies will be scanned for any dependency of <classifier>kubernetes</classifier> and <type>json</type> which are then combined into the resulting generated JSON file. See Combining JSON files
+* `fabric8.container.name`	The docker container name of the application in the generated JSON. This defaults to ${project.artifactId}-container
+* `fabric8.containerPrivileged`	Whether the generated container should be run in priviledged mode (defaults to false)
+* `fabric8.env.FOO` = BAR	Defines the environment variable FOO and value BAR.
+* `fabric8.extra.json`	Allows an extra JSON file to be merged into the generated kubernetes json file. Defaults to using the file target/classes/kubernetes-extra.json.
+* `fabric8.generateJson`	If set to false then the generation of the JSON is disabled.
+* `fabric8.iconRef`	Provides the resource name of the icon to use; found using the current classpath (including the ones shipped inside the maven plugin). For example icons/myicon.svg to find the icon in the src/main/resources/icons directorty. You can refer to a common set of icons by setting this option to a value of: activemq, camel, java, jetty, karaf, mule, spring-boot, tomcat, tomee, weld, wildfly
+* `fabric8.iconUrl`	The URL to use to link to the icon in the generated Template.
+* `fabric8.iconUrlPrefix`	The URL prefix added to the relative path of the icon file
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-json-properties1]
+== Fabric8 maven plugin: json
+
+* `fabric8.iconBranch`	The SCM branch used when creating a URL to the icon file. The default value is master.
+* `fabric8.imagePullPolicy`	Specifies the image pull policy; one of Always, Never or IfNotPresent, . Defaults to Always if the project version ends with SNAPSHOT otherwise it is left blank. On newer OpenShift / Kubernetes versions a blank value implies IfNotPresent
+* `fabric8.imagePullPolicySnapshot`	Specifies the image pull policy used by default for SNAPSHOT maven versions.
+* `fabric8.includeAllEnvironmentVariables`	Should the environment variable JSON Schema files, generate by the **fabric-apt** API plugin be discovered and included in the generated kuberentes JSON file. Defaults to true.
+* `fabric8.includeNamespaceEnvVar`	Whether we should include the namespace in the containers' env vars. Defaults to true
+* `fabric8.label.FOO` = BAR	Defines the kubernetes label FOO and value BAR.
+* `fabric8.livenessProbe.exec`	Creates a exec action liveness probe with this command.
+* `fabric8.livenessProbe.httpGet.path`	Creates a HTTP GET action liveness probe on with this path.
+* `fabric8.livenessProbe.httpGet.port`	Creates a HTTP GET action liveness probe on this port.
+* `fabric8.livenessProbe.httpGet.host`	Creates a HTTP GET action liveness probe on this host.
+* `fabric8.livenessProbe.port`	Creates a TCP socket action liveness probe on specified port.
+* `fabric8.namespaceEnvVar`	The name of the env var to add that will contain the namespace at container runtime. Defaults to KUBERNETES_NAMESPACE.
+
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-json-properties2]
+== Fabric8 maven plugin: json
+
+* `fabric8.parameter.FOO.descriptio`n	Defines the description of the OpenShift template parameter FOO.
+* `fabric8.parameter.FOO.value`	Defines the value of the OpenShift template parameter FOO.
+* `fabric8.port.container.FOO` = 1234	Declares that the pod's container has a port named FOO with a container port 1234.
+* `fabric8.port.host.FOO` = 4567	Declares that the pod's container has a port port named FOO which is mapped to host port 4567.
+* `fabric8.provider`	The provider name to include in resource labels (defaults to fabric8).
+* `fabric8.readinessProbe.exec`	Creates a exec action readiness probe with this command.
+* `fabric8.readinessProbe.httpGet.path`	Creates a HTTP GET action readiness probe on with this path.
+* `fabric8.readinessProbe.httpGet.port`	Creates a HTTP GET action readiness probe on this port.
+* `fabric8.readinessProbe.httpGet.host`	Creates a HTTP GET action readiness probe on this host.
+* `fabric8.readinessProbe.port`	Creates a TCP socket action readiness probe on specified port.
+* `fabric8.replicas`	The number of pods to create for the Replication Controller if the plugin is generating the App JSON file.
+* `fabric8.replicationController.name`	The name of the replication controller used in the generated JSON. This defaults to ${project.artifactId}-controller
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-json-properties3]
+== Fabric8 maven plugin: json
+
+* `fabric8.serviceAccount`	The name of the service account to use in this pod (defaults to none)
+* `fabric8.service.name`	The name of the Service to generate. Defaults to ${project.artifactId} (the artifact Id of the project)
+* `fabric8.service.port`	The port of the Service to generate (if a kubernetes service is required).
+* `fabric8.service.type`	The type of the service. Set to "LoadBalancer" if you wish an external load balancer to be created.
+* `fabric8.service.containerPort`	The container port of the Service to generate (if a kubernetes service is required).
+* `fabric8.service.protocol`	The protocol of the service. (If not specified then kubernetes will default it to TCP).
+* `fabric8.service.port.<portName>`	The service port to generate (if a kubernetes service is required with multiple ports).
+* `fabric8.service.containerPort.<portName>`	The container port to target to generate (if a kubernetes service is required with multiple ports).
+* `fabric8.service.protocol.<portName>`	The protocol of this service port to generate (if a kubernetes service is required with multiple ports).
+* `fabric8.volume.FOO.emptyDir` = somemedium	Defines the emtpy volume with name FOO and medium somemedium.
+* `fabric8.volume.FOO.hostPath` = /some/path	Defines the host dir volume with name FOO.
+* `fabric8.volume.FOO.mountPath` = /some/path	Defines the volume mount with name FOO.
+* `fabric8.volume.FOO.readOnly`	Specifies whether or not a volume is read only.
+* `fabric8.volume.FOO.secret` = BAR	Defines the secret name to be BAR for the FOO volume.
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-apply]
+== Fabric8 maven plugin: apply
+
+* Takes the `kubernetes.json` from fabric8:json and "applies" it to kubernetes
+* Synonymous  with *`kubectl create -f <resource`*
+* Can be applied part of mvn build/mvn lifecycle
+* Just configure these environment variables
+**KUBERNETES_MASTER - the location of the kubernetes master
+**KUBERNETES_NAMESPACE - the default namespace used on operations
+
+
+// ************** Fabric8 ********
+[#fabric8-maven-plugin-apply2]
+== Fabric8 maven plugin: apply
+```
+mvn fabric8:apply -Dfabric8.recreate=true \
+-Dfabric8.domain=foo.acme.com -Dfabric8.namespace=cheese
+```
+
+
+* *`fabric8.apply.create`*	Should we create new resources (not in the kubernetes namespace). Defaults to true.
+* *`fabric8.apply.servicesOnly`*	Should only services be processed. This lets you run 2 builds, process the services only first; then process non-services. Defaults to false.
+* *`fabric8.apply.ignoreServices`*	Ignore any services in the JSON. This is useful if you wish to recreate all the ReplicationControllers and Pods but not recreate Services (which can cause PortalIP addresses to change for services which can break some Pods and could cause problems for load balancers. Defaults to false.
+* *`fabric8.apply.createRoutes`*	If there is a route domain (see fabric8.domain) then this option will create an OpenShift Route for each service for the host expressio: ${serviceName}.${fabric8.domain}. Defaults to true.
+* *`fabric8.domain`*	The domain to expose the services as OpenShift Routes. Defaults to $KUBERNETES_DOMAIN.
+* *`fabric8.namespace`*	Specifies the namespace (or OpenShift project name) to apply the kubernetes resources to. If not specified it will use the
+
+
+
+// ************** Fabric8 ********
+[#fabric8-demo-ci-cd]
+== CI/CD demo
+
+
+Demo time!!
+
+
+
 
 // *********************************************************************************************************************
 [#questions]
