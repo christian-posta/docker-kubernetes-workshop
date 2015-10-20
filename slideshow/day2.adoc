@@ -123,8 +123,6 @@ image::{revealjs_cover_image}[]
 
 * Lab prerequisites in place!
 * Verify you have Oracle VirtualBox 4.3.x
-* Set environment variable *`KUBE_LOGGING_DESTINATION=elasticsearch`*
-** optional; installs fluentd/elasticsearch pods
 * Install Kubernetes link:http://kubernetes.io/v1.0/docs/getting-started-guides/vagrant.html[http://kubernetes.io/v1.0/docs/getting-started-guides/vagrant.html]
 * Windows: need to have HVT
 * Understand the architecture
@@ -253,7 +251,7 @@ image:kubernetes.png[]
 [#whyisitimportant]
 == Why is it important
 
-* Managing containers by hand is harder that VMS: won't scale
+* Managing containers by hand is harder than VMs: won't scale
 * Automate the boilerplate stuff
 * Runbooks -> Scripts -> Config management -> Scale
 * Decouple application from machine!
@@ -330,6 +328,13 @@ image:day2/etcd.png[height="75%",width="75%"]
 [#block,width="200px",left="50px",top="250px"]
 image:day2/node-connectivity.png[height="150%",width="150%"]
 
+// ************** Kubernetes intro ***********
+[#nodes1-overall]
+== Kubernetes nodes
+
+[#block,width="200px",left="50px",top="150px"]
+image:day2/kube-control-plane-nodes.png[height="150%",width="150%"]
+
 
 // ************** Kubernetes intro ***********
 [#nodes1]
@@ -346,8 +351,7 @@ image:day2/node-connectivity.png[height="150%",width="150%"]
 ** Kube services
 * Docker
 
-[#block,width="200px",left="50px",top="250px"]
-image:day2/kube-control-plane-nodes.png[height="150%",width="150%"]
+
 
 
 // ************** Kubernetes intro ***********
@@ -364,6 +368,9 @@ image:day2/kube-control-plane-nodes.png[height="150%",width="150%"]
 // ************** Kubernetes intro ***********
 [#quick-demo]
 == Quick Demo!
+
+
+link:https://github.com/kubernetes/kubernetes/blob/release-1.0/examples/guestbook/README.md[Guestbook demo]
 
 [#block,width="200px",left="50px",top="50px"]
 image:day2/demo.jpg[height="100%",width="100%"]
