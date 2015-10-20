@@ -334,7 +334,14 @@ image:day2/node-connectivity.png[height="150%",width="150%"]
 == Kubernetes nodes
 
 * Kubelet
+** Watches for pods to be assigned to node
+** Mount volumes
+** Install secrets
+** Runs the pod (via Docker)
+** Reports pod status / node status
 * kube-proxy
+** Connection forwarding
+** Kube services
 * Docker
 
 [#block,width="200px",left="50px",top="250px"]

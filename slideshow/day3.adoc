@@ -54,6 +54,13 @@ Email: {speaker-email} |
 * Day 4: Advanced Kubernetes: CI/CD, open discussions
 
 
+
+
+
+
+
+
+
 // ************** transition page **************************************************************************************
 [#transition1, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
 == {blank-space}
@@ -65,7 +72,7 @@ image::{revealjs_cover_image}[]
 *Quick Recap*
 
 // ************** Recap ********
-[#recap1]
+[#recap-docker]
 == Recap Docker
 
 * *Linux* containers
@@ -75,7 +82,7 @@ image::{revealjs_cover_image}[]
 * Registry
 
 // ************** Recap ********
-[#recap2]
+[#why-docker-matters]
 == Why  Docker matters
 
 * Application distribution
@@ -85,7 +92,7 @@ image::{revealjs_cover_image}[]
 * On premise, hybrid, public cloud
 
 // ************** Recap ********
-[#recap3]
+[#recap2]
 == Recap Docker
 
 * Containers run on *single* Docker host
@@ -97,7 +104,7 @@ image::{revealjs_cover_image}[]
 
 
 // ************** Kubernetes intro ***********
-[#whatisit3]
+[#whatiskube]
 == What is Kubernetes
 
 * Smart placement
@@ -120,6 +127,15 @@ image::{revealjs_cover_image}[]
 * *Manage applications, not machines!*
 * What about *legacy apps?*
 
+
+
+// ************** Recap ***********
+[#controlplane]
+== Reconciliation of end state
+
+[#block,width="200px",left="50px",top="170px"]
+image:day2/make-it-so.png[height="200%",width="200%"]
+
 // ************** Recap ***********
 [#coreconcets]
 == Kubernetes core concepts
@@ -133,13 +149,20 @@ image::{revealjs_cover_image}[]
 
 
 // ************** Recap ********
-[#recap3]
+[#why-you-win]
 == Why you win with Docker and Kubernetes
 
 * Immutable infrastructure
 * DevOps
 * CI/CD
 * *Who cares:* give me a platform to move faster!!!
+
+
+
+
+
+
+
 
 // ************** transition page **************************************************************************************
 [#deepdive, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
@@ -155,8 +178,8 @@ image::{revealjs_cover_image}[]
 [#namespaces]
 == Kubernetes namespaces
 
-* Divide cluster across uses, tiers, and teams
-* Unique within a namespace; not across multiple namespaces
+* *Divide cluster* across uses, tiers, and teams
+* Unique within a *namespace*; not across multiple namespaces
 * Very powerful when combined with Labels
 * Example: qa/dev/prod can be implemented with Namespaces
 
@@ -183,8 +206,14 @@ Let's create a new namespace for our `guestbook` application:
 curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/guestbook/namespace.yaml | kubectl create -f -
 ```
 
+Let's list the pods in the `guestbook` namespace, hint: there shouldn't be any at the moment:
+
+```
+kubectl get pods --namespace=guestbook
+```
+
 // ************** Deeper ********
-[#namespaces-contexts]
+[#[namespaces-contexts]
 == Kubernetes Contexts / Namespaces
 
 You can log into multiple kubernetes clusters with the same client and switch between clusters/contexts at the
@@ -197,6 +226,7 @@ kubectl config view
 ```
 Sample output:
 
+```
   - context:
       cluster: master-fuse-osecloud-com:8443
       namespace: microservice
@@ -219,7 +249,7 @@ Sample output:
       client-key-data: REDACTED
       password: vagrant
       username: vagrant
-
+```
 
 // ************** Deeper ********
 [#namespaces-using-contexts]
@@ -240,10 +270,392 @@ kubectl config  use-context guestbook
 Now double check we're in the new context/namespace:
 
 ```
-kubectl config view
+kubectl config view | grep current-context | awk '{print $2}'
 ```
 
-// *********************************
+Now let's deploy a replication controller
+
+```
+curl -s -L https://raw.githubusercontent.com/christian-posta/docker-kubernetes-workshop/master/demos/guestbook/frontend-controller.yaml | kubectl create -f -
+```
+
+Now let's see how many pods we have:
+
+```
+kubectl get pods
+```
+
+  NAME             READY     STATUS    RESTARTS   AGE
+  frontend-juz6j   0/1       Pending   0          5s
+
+
+
+// ************** Deeper ********
+[#namespaces-using-contexts2]
+== Removing components
+
+We have two good ways to group components for development purposes and then clean them up when you want to start over.
+
+* Use Kubernetes labels
+* Use namespaces
+
+You can delete all resources in a namespace like this:
+
+```
+kubectl config use-context vagrant
+kubectl delete namespace guestbook
+```
+
+This approach works fine for local development and grouping. In shared environments the best approach is to properly lable your components (services, RCs, pods, etc) and delete them using labels:
+
+```
+kubectl delete all -l "label=value"
+```
+
+// ************** Deeper ********
+[#not-all-objects-ns]
+== Not all objects in a namespace
+
+* Most objects *are* in a namespace
+** pods
+** replication controllers
+** services
+* Namespaces themselves not in namespace
+* Nodes, PersistentVolumes
+
+// ************** Deeper ********
+[#resource-quotas]
+== Resource Quotas
+
+If the API Server has `ResourceQuota` passed to the `kube-apiserver`'s `--admission_control` argument, then a
+namespace can set a *ResourceQuota* object to limit resources.
+
+Example from the vagrant/master:
+
+  root      6055  0.0  0.0   3172    48 ?        Ss   00:04   0:00 /bin/sh -c /usr/local/bin/kube-apiserver --address=127.0.0.1 --etcd_servers=http://127.0.0.1:4001 --cloud_provider=vagrant  --runtime_config=api/v1 --admission_control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota --service-cluster-ip-range=10.247.0.0/16 --client_ca_file=/srv/kubernetes/ca.crt --basic_auth_file=/srv/kubernetes/basic_auth.csv  --cluster_name=kubernetes --tls_cert_file=/srv/kubernetes/server.cert --tls_private_key_file=/srv/kubernetes/server.key --secure_port=443 --token_auth_file=/srv/kubernetes/known_tokens.csv --bind-address=10.245.1.2 --v=2   --allow_privileged=False 1>>/var/log/kube-apiserver.log 2>&1
+
+
+// ************** Deeper ********
+[#resource-quotas2]
+== Resource Quotas
+
+* Pods must use Resource Limits or will fail to accept the Pod (can use a *LimitRange* to add default limits)
+* Admin creates a ResourceQuota for the namespace
+* If a Pod would cause the Resource Limits to breach, the pod is rejected
+* If the aggregate Resource Limits are set higher than actual available resources, first-come first-serve
+
+// ************** Deeper ********
+[#label-your-nodes]
+== Use labels... for Nodes too!
+
+You can organize your Nodes based on classifications/tiers/resource types. For example, for some data-intensive applications you may wish to request that the scheduler put those pods on nodes that have SSD storage/PV support:
+
+```
+kubectl label nodes node-foo disktype=ssd
+```
+
+Now if you add a node selector section to your Pod, the pod will only end up on nodes with the *`disktype=ssd`* label
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    env: test
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+  nodeSelector:
+    disktype: ssd
+```
+
+
+
+
+
+
+
+
+
+
+// ************** transition page **************************************************************************************
+[#security-transition, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Kubernetes: Security*
+
+
+// ************** Security ********
+[#security-overview]
+== Security Goals
+
+* Appropriate boundaries between cluster, pods, users who manage cluster/application developers
+* Appropriate boundaries enforced between containers and hosts (via docker/linux cap/selinux/apparmor/etc)
+* Ability to delegate administrative functions to users where it makes sense
+* Hide credentials/keys/passwords from others
+
+// ************** Security ********
+[#security-roles]
+== Security Roles
+
+* Administration/Full authority
+* Project/namespace admin
+* Developer
+
+
+// ************** Security ********
+[#secure-api-server]
+== Securing the API Server
+
+* `--client_ca_file` -- used to allow authentication via client certificates
+* `--token_auth_file` -- allow authentication via tokens; tokens are long-lived and cannot be refreshed (atm)
+* `--basic_auth_file` -- HTTP basic httpswd file
+
+// ************** Security ********
+[#secure-api-server2]
+== Attribute based access control (ABAC)
+
+The four attributes that apply to authorization measures:
+
+* The user (as authenticated already)
+* Read only/Write -- GET commands are readonly
+* The resource in question (pod/RC/service,etc)
+* The namespace
+
+
+// ************** Security ********
+[#specify-policies]
+== Specify policies
+Specifying policies: when starting the API server, pass a single-line JSON file to `--authorization_policy_file`
+
+* {"user":"ceposta"}
+* {"user":"ceposta", "resource": "pods", "readonly": true}
+* {"user":"ceposta", "resource": "events"}
+* {"user":"ceposta", "resource": "pods", "readonly": true, "ns": "projectBalvenie"}
+
+NOTE: This file is only reloaded when restarting API server
+
+
+// ************** Security ********
+[#serviceaccounts-intro]
+== Service Accounts intro
+
+Service accounts vs User accounts
+
+* User accounts for humans; service accounts for services w/in Pods
+* Service accounts are "namespaced"
+* Service account creation is much simpler/lightweight vs User creation
+* Allow services to access the Kubernetes API
+
+
+// ************** Security ********
+[#serviceaccounts-admission-controller]
+== Service Accounts Admission
+
+Acts as part of the API server, decorates pods with Service Account information:
+
+* Will assign `default` Service Account if one not specified
+* Will reject a Service Account if it specified and does not exist
+* Add ImagePullSecrets (for private repos)
+* Adds volume for token-based API access (secret)
+* Runs synchronously when pods are created
+
+
+// ************** Security ********
+[#secrets]
+== Secrets
+
+* Image secrets
+* Secret Volumes
+* Service accounts actually use secrets to pass API tokens
+* Can pass sensitive data
+** passwords
+** keys
+** certificates
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  password: dmFsdWUtMg0K
+  username: dmFsdWUtMQ0K
+```
+
+NOTE: Secret "keys" in the map above, must link:http://kubernetes.io/v1.0/docs/design/identifiers.html[follow DNS subdomain naming convention]. The values are `base64` encoded
+
+
+
+// ************** Security ********
+[#pod-using-secret-explicitly]
+== Pod using a secret
+
+```
+---
+  apiVersion: "v1"
+  kind: "Pod"
+  metadata:
+    name: "mypod"
+    namespace: "myns"
+  spec:
+    containers:
+      -
+        name: "mypod"
+        image: "redis"
+        volumeMounts:
+          -
+            name: "foo"
+            mountPath: "/etc/foo"
+            readOnly: true
+    volumes:
+      -
+        name: "foo"
+        secret:
+          secretName: "mysecret"
+```
+
+
+
+
+
+
+
+
+
+
+// ************** transition page **************************************************************************************
+[#networking-transition, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Kubernetes Networking*
+
+
+// ************** Networking ********
+[#docker-networking]
+== Docker networking
+
+
+* local, host-only bridge (docker0)
+*c reate new adapters to the bridge (veth) for each container that’s created
+* veth is mapped to eth0 on a container
+* eth0 is assigned an IP from the range dedicated to the virtual bridge
+* result: docker containers can talk to each other only on the same machine
+* containers on different hosts could have the exact same IP
+* in order for docker containers to communicate across hosts, they need to allocate ports on the host
+* this means containers must coordinate appropriately, etc or allocate dynamically (and know when not to run out of ports)
+* this is difficult to do, doesn’t scale very well
+* dynamic port allocation tricky — now each app MUST take a “port” parameter and configured at runtime
+
+// ************** Networking ********
+[#understand-docker-bridge]
+== Quickly understand default docker networking
+
+[#block,width="200px",top="150px",left="75px"]
+image:day1/docker-network.png[width="170%",height="170%"]
+
+
+// ************** Networking ********
+[#kube-networking]
+== Kubernetes networking
+
+
+* all pods can communicate with other pods w/out any NAT
+* all nodes can communicate with pods without NAT
+* the IP the pod sees is the same IP seen outside of the pod
+* cannot take docker hosts out of the box and expect kube to work
+* this is a simpler model
+** reduces friction when coming from VM environments where this is more or less true
+
+
+// ************** Networking ********
+[#kube-networking-pod-to-pod]
+== Pod to Pod, Pod to external
+
+* Flat networking space
+* So the transition is consistent VM->Pod
+* No additional container or application gymnastics /NAT/etc to have to go through each time you deploy
+* Pods have their own “port space” independent of other pods
+* Don’t need to explicitly create “docker links” between containers (would only work on a single node anyway)
+* Otherwise, dynamic allocation of ports on Host every time a pod needs a port gets very complicated for orchestration and scheduling
+** exhaustion of ports
+** reuse of ports
+** tricky app config
+** watching/cache invalidation
+** redirection, etc
+** conflicts
+** NAT breaks self-registration mechanisms, etc
+
+
+// ************** Networking ********
+[#kube-networking-container-to-container2]
+== Pods have single IP address for all containers
+
+* IP address visible inside and outside of the container
+* Self-registration works fine as you would expect as does DNS
+* Implemented as a “pod container” which holds the network namespace (net) and “app containers” which join with Docker’s —net=container:<id>
+* In docker world, the IP inside the container is NOT what an entity outside of the container sees, even in another container
+
+
+
+// ************** Networking ********
+[#kube-networking-container-to-container]
+== Container to Container w/ Pod
+
+* All containers behave as though they’re on a single host, i.e., they see the same ports and network. they can communicate with each other over localhost
+* Simplicity (well known ports, 80, 22, etc)
+* Security (ports bound on localhost are only visible within the pod/containers, never outside)
+* Performance (don’t have to take network stack penalties, marshaling, unmarhsaling, etc)
+* Very similar to running multiple processes in a VM host for example
+* Drawback: no container-local ports, could clash, etc. but these are minor inconveniences at the moment and workarounds are being implemented
+* However, pods come with the premise of shared resources (volumes, CPU, memory, etc) so a reduction in isolation is really expected. If you need isolation, use Pods not containers to achieve this.
+
+
+// ************** Networking ********
+[#kube-networking-pod-toservice]
+== Pod to service
+
+* Service IPs are VIP
+* kube-proxy alters iptables on the node to trap service IPs and redirect them to the correct backends
+* Simple, hi-performance, HA solution
+
+// ************** Networking ********
+[#kube-networking-external-to-pod]
+== External to Pod
+
+* This gets tricky
+* Need to set up external load balancer to fwd all service IPs and load balance against all nodes
+* The kube-proxy should trap that IP and send it to service?
+* Expose services directly to node hosts? —> suitable for poc type workloads, but not suitable for real prod workloads
+
+
+
+// ************** transition page **************************************************************************************
+[#livedemo, data-background-image="revealjs-redhat/image/1156524-bg_redhat.png" data-background-color="#cc0000"]
+== {blank-space}
+
+[#block,width="200px",left="70px",top="0px"]
+image::{revealjs_cover_image}[]
+
+[#cover-h1,left="0px",top="350px",width="2000px"]
+*Live Demo*
+
+
+
+
+// *********************************************************************************************************************
 [#questions]
 == Questions
 
