@@ -20,11 +20,25 @@ Github.com access
 
 The slides will walk you through setting up Docker and Kubernetes, etc
 
+[http://redhatworkshops.github.io/slides/docker/generated/intro.html](http://redhatworkshops.github.io/slides/docker/generated/intro.html)
+
+[http://redhatworkshops.github.io/slides/docker/generated/intro.html](http://redhatworkshops.github.io/slides/docker/generated/day1.html)
+
+[http://redhatworkshops.github.io/slides/docker/generated/intro.html](http://redhatworkshops.github.io/slides/docker/generated/day2.html)
+
+[http://redhatworkshops.github.io/slides/docker/generated/intro.html](http://redhatworkshops.github.io/slides/docker/generated/day3.html)
+
+See this blog [for more info on each of the days](http://blog.christianposta.com/kubernetes/3-day-docker-and-kubernetes-training/)
+
+## Generate slides
+The sources for the slides are written in asciidoc and are prepared and packaged with revealjs using a wonderful tool named  [hyla](https://github.com/cmoulliard/hyla). To generate the slides, [install hyla]() and then from the root of this directory (after cloning it), run this:
+
+> hyla generate -c slideshow/conference-redhat.yaml
+
 
 ## Credits
 
 Huge shout out to the work [Kelsey Hightower](https://github.com/kelseyhightower/) does in the kubernetes community, and providing his [intro to kubernetes](https://github.com/kelseyhightower/intro-to-kubernetes-workshop) workshop on github.com I've used some of the `inspector` app RC and service definitions to illustrate the respective concepts.
- 
+
 For my slides, I used a lot of the [kubernetes.io documentation]() and some inspiration from Googler [
 Satnam Singh's presentation tiled "Cluster management with Kubernetes"](http://www.slideshare.net/SatnamSingh67/2015-0605-cluster-management-with-kubernetes) and blog post [http://blog.raintown.org/2014/11/logging-kubernetes-pods-using-fluentd.html](http://blog.raintown.org/2014/11/logging-kubernetes-pods-using-fluentd.html)
-
